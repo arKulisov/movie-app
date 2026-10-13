@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MovieFinder</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="header__title">MovieSearch</h1>
+      <div class="search">
+        <input
+          type="text"
+          name="search"
+          class="search__input"
+          id="search-input"
+        />
+        <button type="button" class="search__button">Поиск</button>
+      </div>
+    </header>
+    <main class="main">
+      <div id="loader" class="loader loader--hidden">
+        <div class="loader__spinner"></div>
+      </div>
+      <div class="content"></div>
+      <div class="filters">
+        <div class="filters__group filters__group--genres">
+          <span class="filters__name" data-name="filter" data-type="genres"
+            >Жанры</span
+          >
+          <div class="filters__dropdown filters__dropdown--hidden"></div>
+        </div>
+        <div class="filters__group filters__group--year">
+          <div class="filters__name" data-name="filter">Год</div>
+          <div
+            class="filters__dropdown filters__dropdown--hidden"
+            data-type="year"
+          >
+            <div class="slider">
+              <div class="slider__track">
+                <div class="slider__active"></div>
+
+                <div class="slider__thumb slider__thumb--left">
+                  <span class="slider__value slider__value--from">1900</span>
+                </div>
+                <div class="slider__thumb slider__thumb--right">
+                  <span class="slider__value slider__value--to">2026</span>
+                </div>
+              </div>
+            </div>
+            <div class="filters__quick">
+              <span class="filters__quick-item" data-year="1900">до 30-х</span>
+              <span class="filters__quick-item" data-year="1930">30-е</span>
+              <span class="filters__quick-item" data-year="1940">40-е</span>
+              <span class="filters__quick-item" data-year="1950">50-е</span>
+              <span class="filters__quick-item" data-year="1960">60-е</span>
+              <span class="filters__quick-item" data-year="1970">70-е</span>
+              <span class="filters__quick-item" data-year="1980">80-е</span>
+              <span class="filters__quick-item" data-year="1990">90-е</span>
+              <span class="filters__quick-item" data-year="2000">2000-е</span>
+              <span class="filters__quick-item" data-year="2010">2010-е</span>
+              <span class="filters__quick-item" data-year="2020">2020-е</span>
+            </div>
+          </div>
+        </div>
+        <div class="filters__group filters__group--rating">
+          <span class="filters__name" data-name="filter">Рейтинг</span>
+          <div
+            class="filters__dropdown filters__dropdown--hidden"
+            data-type="rating"
+          >
+            <div class="slider">
+              <div class="slider__track">
+                <div class="slider__active"></div>
+
+                <div class="slider__thumb slider__thumb--left">
+                  <span class="slider__value slider__value--from">0.0</span>
+                </div>
+                <div class="slider__thumb slider__thumb--right">
+                  <span class="slider__value slider__value--to">10.0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="filters__group filters__group--sort">
+          <span class="filters__name" data-name="filter">По популярности</span>
+          <div class="filters__dropdown filters__dropdown--hidden">
+            <span class="filters__list-item" data-sort="popularity.desc"
+              >По популярности</span
+            >
+            <span class="filters__list-item" data-sort="vote_average.desc"
+              >По рейтингу</span
+            >
+            <span class="filters__list-item" data-sort="primary_release_date.asc"
+              >По дате выхода</span
+            >
+          </div>
+        </div>
+      </div>
+    </main>
+    <template id="movie-card">
+      <div class="movie-card">
+        <img class="movie-card__poster" width="500" height="750" />
+        <div class="movie-card__info">
+          <h3 class="movie-card__name"></h3>
+          <span class="movie-card__genres"></span
+          ><span class="movie-card__rating"></span
+          ><span class="movie-card__year"></span>
+        </div>
+      </div>
+    </template>
+    <script src="script.js"></script>
+  </body>
+</html>

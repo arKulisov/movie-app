@@ -1,0 +1,214 @@
+:root {
+  --main-text: #ffffff;
+  --second-text: rgb(184, 184, 184);
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5em;
+  font-size: 16px;
+}
+
+/* Header */
+.header__title {
+  color: red;
+  font-size: 28px;
+}
+
+/* Content */
+.content {
+  display: flex;
+  width: fit-content;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: center;
+}
+
+/* Movie card */
+.movie-card {
+  width: calc((100% - 25px) / 8);
+  height: 400px;
+  background-color: #043a5e;
+}
+
+.movie-card__poster {
+  width: 100%;
+  height: auto;
+}
+
+.movie-card__info {
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.movie-card__name,
+.movie-card__rating,
+.movie-card__genres {
+  color: var(--main-text);
+}
+
+.movie-card__year {
+  color: var(--second-text);
+}
+
+/* Loader */
+.loader {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loader--hidden {
+  display: none;
+}
+
+.loader__spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3; /* Серый цвет основы */
+  border-top: 5px solid #3498db; /* Синий цвет крутящейся части */
+  border-radius: 50%;
+  animation: spin 1.3s linear infinite; /* Бесконечная анимация */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  padding: 15px;
+  gap: 15px;
+  width: 15%;
+  background-color: #350135;
+  position: relative;
+}
+
+.filters__name {
+  color: var(--second-text);
+  cursor: pointer;
+  border-radius: 15px;
+  padding: 10px;
+}
+
+.filters__name:hover {
+  background-color: #3498db;
+}
+
+.filters__dropdown {
+  display: flex;
+  padding: 25px;
+  justify-content: space-between;
+  align-items: start;
+  gap: 15px;
+  flex-direction: column;
+  flex-wrap: wrap;
+  background-color: #043a5e;
+  position: absolute;
+  right: 300px;
+  width: fit-content;
+}
+
+.filters__dropdown span {
+  align-items: start;
+  height: fit-content;
+  cursor: pointer;
+  color: var(--main-text);
+}
+
+.filters__dropdown--hidden {
+  display: none;
+}
+
+/* Genres list */
+.filters__group--genres .filters__dropdown {
+  width: 600px;
+  height: 220px;
+}
+
+/* Quick year selection */
+.filters__quick {
+  display: flex;
+  justify-content: space-evenly;
+  width: 100%;
+}
+
+/* Main layout */
+.main {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  background-color: #001625;
+}
+
+/* Selected state (used in JS) */
+.selected {
+  background-color: #42022a;
+}
+
+/* Slider */
+.slider__track {
+  background-color: #000000;
+  width: 500px;
+  height: 30px;
+  position: relative;
+}
+
+.slider__active {
+  background-color: rgba(0, 174, 255, 0.5);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.slider__thumb {
+  width: 8px;
+  height: 100%;
+  background-color: #3498db;
+  position: absolute;
+  bottom: 0;
+  cursor: pointer;
+}
+
+.slider__thumb--left {
+  left: -8px;
+}
+
+.slider__thumb--right {
+  right: -8px;
+}
+
+.slider__value {
+  position: absolute;
+  bottom: 35px;
+}
+
+.slider__value--from {
+  left: -36px;
+}
+
+.slider__value--to {
+  left: 12px;
+}
+
+/* Thumb move transition (used in JS) */
+.thumb-move {
+  transition: all 0.3s ease-in-out;
+}
