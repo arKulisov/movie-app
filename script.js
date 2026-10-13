@@ -36,10 +36,21 @@ loadGenres().then(() => {
 });
 
 function buildState() {
-  let savedState = localStorage.getItem("state");
-  if (savedState) {
-    return Object.assign({ ...defaultState }, JSON.parse(savedState));
-  } else return { ...defaultState };
+  const savedState = localStorage.getItem("state");
+
+  if (!savedState) {
+    return { ...defaultState };
+  }
+
+  try {
+    return {
+      ...defaultState,
+      ...JSON.parse(savedState),
+    };
+  } catch {
+    localStorage.removeItem("state");
+    return { ...defaultState };
+  }
 }
 
 function updateState(changes) {
@@ -91,20 +102,33 @@ function handleSearch() {
   updateAll({ mode: MODE.SEARCH, query, page: 1 });
 }
 
+let activeRequestController = null;
 
 async function searchMovies(url) {
   loader.classList.remove("loader--hidden");
 
+  activeRequestController?.abort();
+
+  const controller = new AbortController();
+  activeRequestController = controller;
+
+  
   try {
-    let response = await fetch(url, {
+    const response = await fetch(url, {
       method: "GET",
+      signal: controller.signal,
       headers: {
         "Content-Type": "application/json"
       },
     });
     if (!response.ok) throw new Error("Ошибка");
 
-    let data = await response.json();
+    const data = await response.json();
+
+     if (controller !== activeRequestController) {
+      return;
+    }
+
 
     const items = data.results
       .filter((r) => r.media_type !== "person")
@@ -114,7 +138,10 @@ async function searchMovies(url) {
   } catch (err) {
     console.log(err.message);
   } finally {
-    loader.classList.add("loader--hidden");
+    if (controller === activeRequestController) {
+      loader.classList.add("loader--hidden");
+      activeRequestController = null;
+    }
   }
 }
 
