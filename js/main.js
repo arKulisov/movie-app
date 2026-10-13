@@ -1,211 +1,43 @@
-const defaultState = {
-  mode: "discover/movie",
-  query: "",
-  page: 1,
+import { MODE, state } from "./config.js";
+import { refreshCatalog, loadGenres, genres } from "./api/catalogue.js";
 
-  genres: [],
-  yearFrom: null,
-  yearTo: null,
-  ratingFrom: null,
-  ratingTo: null,
-
-  sortBy: "popularity.desc",
-};
-
-
-const BASE = "https://api.themoviedb.org/3/";
-
-const PROXY = "https://proxy-worker.arkulisov.workers.dev/";
-
-const MODE = {
-  DISCOVER: "discover/movie",
-  SEARCH: "search/movie",
-};
-
-const state = buildState();
-const input = document.querySelector(".search__input");
-const searchButton = document.querySelector(".search__button");
-const content = document.querySelector(".content");
-const filters = document.querySelector(".filters");
-
-const loader = document.querySelector("#loader");
-
-let genres = {};
+// ─── Инициализация ───
 loadGenres().then(() => {
   createFilterGenre();
+  refreshCatalog({ mode: MODE.DISCOVER, query: "", page: 1 }); // первичная загрузка фильмов
 });
 
-function buildState() {
-  const savedState = localStorage.getItem("state");
+const genreContainer = document.querySelector('[data-type="genres"]');
 
-  if (!savedState) {
-    return { ...defaultState };
-  }
-
-  try {
-    return {
-      ...defaultState,
-      ...JSON.parse(savedState),
-    };
-  } catch {
-    localStorage.removeItem("state");
-    return { ...defaultState };
-  }
+function createFilterGenre() {
+  let count = 0;
+  Object.entries(genres).forEach(([id, value]) => {
+    let filter = document.createElement("span");
+    let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
+    filter.dataset.id = id;
+    filter.textContent = genreValue;
+    if (++count % 3 === 0) filter.style.marginBottom = 10 + "px";
+    genreContainer.append(filter);
+  });
 }
 
-function updateState(changes) {
-  Object.assign(state, changes);
-  localStorage.setItem("state", JSON.stringify(state));
-}
-
-updateAll({});
-
-function buildURL(state) {
-  let url = new URL(state.mode, BASE);
-  const p = url.searchParams;
-
-  p.set("language", "ru-RU");
-  p.set("page", state.page);
-
-  if (state.mode === MODE.SEARCH) {
-    p.set("query", state.query);
-  } else {
-    p.set("sort_by", state.sortBy);
-  if (state.genres.length) p.set("with_genres", state.genres.join(","));
-  if (state.yearFrom != null)
-    p.set("primary_release_date.gte", `${state.yearFrom}-01-01`);
-  if (state.yearTo != null)
-    p.set("primary_release_date.lte", `${state.yearTo}-12-31`);
-  if (state.ratingFrom != null) p.set("vote_average.gte", state.ratingFrom);
-  if (state.ratingTo != null) p.set("vote_average.lte", state.ratingTo);
-  }
-
-  return `${PROXY}?url=${encodeURIComponent(url.toString())}`;
-}
-
-function updateAll(value) {
-  updateState(value);
-
-  const url = buildURL(state);
-  searchMovies(url);
-}
-
-searchButton.addEventListener("click", handleSearch);
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") handleSearch();
-});
-
+// ─── Поиск ───
+const input = document.querySelector(".search__input");
+const button = document.querySelector(".search__button");
 
 function handleSearch() {
   const query = input.value.trim();
   if (!query) return;
-  updateAll({ mode: MODE.SEARCH, query, page: 1 });
+  refreshCatalog({ mode: MODE.SEARCH, query, page: 1 });
 }
 
-let activeRequestController = null;
+button.addEventListener("click", handleSearch);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleSearch();
+});
 
-async function searchMovies(url) {
-  loader.classList.remove("loader--hidden");
-
-  activeRequestController?.abort();
-
-  const controller = new AbortController();
-  activeRequestController = controller;
-
-  
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
-    if (!response.ok) throw new Error("Ошибка");
-
-    const data = await response.json();
-
-     if (controller !== activeRequestController) {
-      return;
-    }
-
-
-    const items = data.results
-      .filter((r) => r.media_type !== "person")
-      .map(normalize);
-
-    renderMovieCard(items);
-  } catch (err) {
-    console.log(err.message);
-  } finally {
-    if (controller === activeRequestController) {
-      loader.classList.add("loader--hidden");
-      activeRequestController = null;
-    }
-  }
-}
-
-function normalize(r) {
-  return {
-    type: r.media_type, // 'movie' или 'tv'
-    title: r.title ?? r.name,
-    date: r.release_date ?? r.first_air_date,
-    poster: r.poster_path,
-    rating: r.vote_average,
-    genreIds: r.genre_ids ?? [],
-  };
-}
-
-const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
-const NO_POSTER = "img/no-poster.svg";
-
-const posterUrl = (path) =>
-  path
-    ? `${PROXY}?url=${encodeURIComponent(TMDB_IMG + path)}`
-    : NO_POSTER;
-
-const movieCardTemplate = document.querySelector("#movie-card");
-
-function renderMovieCard(items) {
-  content.innerHTML = "";
-
-  items.forEach((item) => {
-    const card = movieCardTemplate.content.cloneNode(true);
-
-    const img = card.querySelector(".movie-card__poster");
-    img.src = posterUrl(item.poster);
-    img.alt = item.title;
-
-    card.querySelector(".movie-card__name").textContent = item.title;
-    card.querySelector(".movie-card__genres").textContent = item.genreIds
-      .map((id) => genres[id])
-      .filter(Boolean)
-      .join(", ");
-    card.querySelector(".movie-card__rating").textContent = item.rating
-      ? item.rating.toFixed(1)
-      : "—";
-    card.querySelector(".movie-card__year").textContent = item.date
-      ? item.date.slice(0, 4)
-      : "—";
-
-    content.append(card);
-  });
-}
-
-async function loadGenres() {
-  try {
-    const target = "https://api.themoviedb.org/3/genre/movie/list?language=ru-RU";
-    let response = await fetch(`${PROXY}?url=${encodeURIComponent(target)}`);
-    if (!response.ok) throw new Error("Не удалось загрузить Жанры");
-    const data = await response.json();
-
-    console.log("Сырые жанры", data);
-    genres = Object.fromEntries(data.genres.map((g) => [g.id, g.name]));
-  } catch (err) {
-    console.log(err.message);
-  }
-}
-
+// ─── Фильтры ───
+const filters = document.querySelector(".filters");
 filters.addEventListener("click", createFilterContainer);
 
 let activeFilter = null;
@@ -239,19 +71,6 @@ document.addEventListener("click", (e) => {
   activeFilter = null;
 });
 
-const genreContainer = document.querySelector('[data-type="genres"]');
-function createFilterGenre() {
-  let count = 0;
-  Object.entries(genres).forEach(([id, value]) => {
-    let filter = document.createElement("span");
-    let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
-    filter.dataset.id = id;
-    filter.textContent = genreValue;
-    if (++count % 3 === 0) filter.style.marginBottom = 10 + "px";
-    genreContainer.append(filter);
-  });
-}
-
 genreContainer.addEventListener("click", onFilterClick);
 
 function onFilterClick(e) {
@@ -271,9 +90,10 @@ function addGenre(id) {
   const newGenres = state.genres.includes(id)
     ? state.genres.filter((g) => g !== id)
     : [...state.genres, id];
-  updateAll({ genres: newGenres });
+  refreshCatalog({ genres: newGenres, page: 1 });
 }
 
+// ─── Слайдеры ───
 let thumbLeft;
 let thumbRight;
 const sliderYearContainer = document.querySelector('[data-type="year"]');
@@ -361,14 +181,16 @@ function handlePointerUp(e) {
   isDragging = false;
 
   if (sliderYearContainer.contains(activeSlider)) {
-    updateAll({
+    refreshCatalog({
       yearFrom: fromValue,
       yearTo: toValue,
+      page: 1,
     });
   } else if (sliderRatingContainer.contains(activeSlider)) {
-    updateAll({
+    refreshCatalog({
       ratingFrom: fromValue,
       ratingTo: toValue,
+      page: 1,
     });
   }
 }
@@ -407,12 +229,11 @@ function handleSliderClick(e) {
   let distanceRight = Math.abs(centerRight - clickX);
 
   if (distanceLeft < distanceRight) {
-    const newLeftX =
-    clickX - thumbLeft.offsetWidth;
+    const newLeftX = clickX - thumbLeft.offsetWidth;
 
-  thumbLeft.style.left = `${newLeftX}px`
+    thumbLeft.style.left = `${newLeftX}px`;
 
-    updateSlider(newLeft, thumbRight.offsetLeft);
+    updateSlider(newLeftX, thumbRight.offsetLeft);
   } else {
     thumbRight.style.left = clickX + "px";
 
@@ -422,14 +243,16 @@ function handleSliderClick(e) {
   updateThumbValue(fromValue, toValue);
 
   if (sliderYearContainer.contains(activeSlider)) {
-    updateAll({
+    refreshCatalog({
       yearFrom: fromValue,
       yearTo: toValue,
+      page: 1,
     });
   } else if (sliderRatingContainer.contains(activeSlider)) {
-    updateAll({
+    refreshCatalog({
       ratingFrom: fromValue,
       ratingTo: toValue,
+      page: 1,
     });
   }
 }
@@ -475,9 +298,10 @@ function handleYearSelection(e) {
 
   updateSlider(leftX, rightX);
 
-  updateAll({
+  refreshCatalog({
     yearFrom: fromValue,
     yearTo: toValue,
+    page: 1,
   });
 }
 
@@ -500,5 +324,5 @@ function handleSortingClick(e) {
   selected.classList.add("selected");
 
   console.log(selected.dataset.sort);
-  updateAll({ sortBy: selected.dataset.sort });
+  refreshCatalog({ sortBy: selected.dataset.sort, page: 1 });
 }
