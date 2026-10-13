@@ -199,7 +199,7 @@ async function loadGenres() {
     if (!response.ok) throw new Error("Не удалось загрузить Жанры");
     const data = await response.json();
 
-    console.log("Сырыже жанры", data);
+    console.log("Сырые жанры", data);
     genres = Object.fromEntries(data.genres.map((g) => [g.id, g.name]));
   } catch (err) {
     console.log(err.message);
@@ -407,9 +407,12 @@ function handleSliderClick(e) {
   let distanceRight = Math.abs(centerRight - clickX);
 
   if (distanceLeft < distanceRight) {
-    thumbLeft.style.left = clickX + "px";
+    const newLeftX =
+    clickX - thumbLeft.offsetWidth;
 
-    updateSlider(clickX, thumbRight.offsetLeft);
+  thumbLeft.style.left = `${newLeftX}px`
+
+    updateSlider(newLeft, thumbRight.offsetLeft);
   } else {
     thumbRight.style.left = clickX + "px";
 
