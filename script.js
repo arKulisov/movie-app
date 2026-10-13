@@ -84,16 +84,13 @@ input.addEventListener("keydown", (e) => {
   if (e.key === "Enter") handleSearch();
 });
 
+
 function handleSearch() {
-  if (!input.value) return;
-
-  updateState({
-    mode: "search/multi",
-  });
-  const url = buildURL(state);
-
-  updateAll({ mode: "search/movie", query: input.value.trim(), page: 1 });
+  const query = input.value.trim();
+  if (!query) return;
+  updateAll({ mode: MODE.SEARCH, query, page: 1 });
 }
+
 
 async function searchMovies(url) {
   loader.classList.remove("loader--hidden");
