@@ -1,5 +1,6 @@
 import { MODE, state } from "./config.js";
-import { refreshCatalog, loadGenres, genres } from "./api/catalogue.js";
+import { loadGenres, genres } from "./api/catalogue.js";
+import { refreshCatalogue } from "./catalogueController.js";
 
 // ─── Инициализация ───
 loadGenres().then(() => {
