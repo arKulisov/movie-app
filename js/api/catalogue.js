@@ -1,5 +1,6 @@
-import { BASE, PROXY, MODE, state, setState } from "../config.js";
+import { BASE, PROXY, MODE } from "../config.js";
 import { renderMovieCard } from "../ui/catalogueView.js";
+import { state, setState } from "../state.js"
 
 // ─── URL ───
 export function buildURL(s) {
@@ -54,11 +55,10 @@ function normalize(r) {
 }
 
 // ─── Сеть ───
-const loader = document.querySelector("#loader");
+
 let activeRequestController = null;
 
 export async function searchMovies(url) {
-  loader.classList.remove("loader--hidden");
 
   activeRequestController?.abort();
   const controller = new AbortController();
@@ -84,17 +84,9 @@ export async function searchMovies(url) {
     console.log(err.message);
   } finally {
     if (controller === activeRequestController) {
-      loader.classList.add("loader--hidden");
       activeRequestController = null;
     }
   }
-}
-
-// ─── Оркестратор ───
-export async function refreshCatalog(changes = {}) {
-  setState(changes);
-  const items = await searchMovies(buildURL(state));
-  if (items) renderMovieCard(items);
 }
 
 // ─── Постеры ───
