@@ -1,0 +1,6 @@
+// ─── Оркестратор ───
+export async function refreshCatalog(changes = {}) {
+  setState(changes);
+  const items = await searchMovies(buildURL(state));
+  if (items) renderMovieCard(items);
+}
