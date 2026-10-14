@@ -17,8 +17,18 @@ let toValue;
 let activeSlider;
 
 export function initSlider() {
-    sliderYearContainer.addEventListener("pointerdown", handlePointerDown);
-    sliderRatingContainer.addEventListener("pointerdown", handlePointerDown);
+  sliderYearContainer.addEventListener("pointerdown", handlePointerDown);
+  sliderRatingContainer.addEventListener("pointerdown", handlePointerDown);
+}
+
+/// продолжить тут
+
+
+function selectSlider(container) {
+  activeSlider = container.querySelector(".slider__track");
+  thumbLeft = activeSlider.querySelector(".slider__thumb--left");
+  thumbRight = activeSlider.querySelector(".slider__thumb--right");
+  sliderRange = activeSlider.querySelector(".slider__active");
 }
 
 
@@ -113,17 +123,12 @@ function updateSlider(leftX, rightX) {
 function posToValues(x) {
   const percent = x / activeSlider.offsetWidth;
 
-  if (sliderYearContainer.contains(activeSlider)) {
-    const minYear = 1900;
-    const maxYear = new Date().getFullYear();
+  const { min, max } = getRange();
+  const value = min + percent * (max - min);
 
-    return Math.round(minYear + percent * (maxYear - minYear));
-  } else if (sliderRatingContainer.contains(activeSlider)) {
-    const minRating = 0;
-    const maxRating = 10;
-
-    return (minRating + percent * (maxRating - minRating)).toFixed(1);
-  }
+  return sliderYearContainer.contains(activeSlider)
+    ? Math.round(value)
+    : value.toFixed(1);
 }
 
 function handleSliderClick(e) {
@@ -180,39 +185,34 @@ function updateValues() {
 
 const yearSelection = document.querySelector(".filters__quick");
 
-function handleYearSelection(e) {
-  if (e.target.tagName !== "SPAN") return;
+function getRange() {
+  return sliderYearContainer.contains(activeSlider)
+    ? { min: 1900, max: new Date().getFullYear() }
+    : { min: 0, max: 10 };
+}
 
-  const minYear = 1900;
-  const maxYear = new Date().getFullYear();
+function setSliderValues(from, to) {
+  const { min, max } = getRange();
+  const width = activeSlider.offsetWidth;
 
-  fromValue = Number(e.target.dataset.year);
-  toValue = Math.min(fromValue + 10, maxYear);
-
-  const percentLeft = (fromValue - minYear) / (maxYear - minYear);
-  const percentRight = (toValue - minYear) / (maxYear - minYear);
-
-  const leftX = percentLeft * activeSlider.offsetWidth - thumbLeft.offsetWidth;
-  const rightX = percentRight * activeSlider.offsetWidth;
-
-  thumbLeft.classList.add("thumb-move");
-  thumbRight.classList.add("thumb-move");
+  const leftX = ((from - min) / (max - min)) * width - thumbLeft.offsetWidth;
+  const rightX = ((to - min) / (max - min)) * width;
 
   thumbLeft.style.left = leftX + "px";
   thumbRight.style.left = rightX + "px";
 
-  thumbLeft.classList.remove("thumb-move");
-  thumbRight.classList.remove("thumb-move");
-
-  updateThumbValue(fromValue, toValue);
-
+  updateThumbValue(from, to);
   updateSlider(leftX, rightX);
+}
 
-  refreshCatalog({
-    yearFrom: fromValue,
-    yearTo: toValue,
-    page: 1,
-  });
+function handleYearSelection(e) {
+  if (e.target.tagName !== "SPAN") return;
+
+  fromValue = Number(e.target.dataset.year);
+  toValue = Math.min(fromValue + 10, new Date().getFullYear());
+
+  setSliderValues(fromValue, toValue);
+  refreshCatalog({ yearFrom: fromValue, yearTo: toValue, page: 1 });
 }
 
 const SortContainer = document.querySelector(

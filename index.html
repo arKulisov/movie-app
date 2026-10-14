@@ -26,80 +26,69 @@
       </div>
       <div class="content"></div>
       <div class="filters">
-        <div class="filters__group filters__group--genres">
-          <span class="filters__name" data-name="filter" data-type="genres"
-            >Жанры</span
-          >
-          <div class="filters__dropdown filters__dropdown--hidden"></div>
-        </div>
-        <div class="filters__group filters__group--year">
-          <div class="filters__name" data-name="filter">Год</div>
-          <div
-            class="filters__dropdown filters__dropdown--hidden"
-            data-type="year"
-          >
-            <div class="slider">
-              <div class="slider__track">
-                <div class="slider__active"></div>
+  <details class="filters__group filters__group--genres" name="filters">
+    <summary class="filters__name">Жанры</summary>
+    <div class="filters__dropdown" data-type="genres"></div>
+  </details>
 
-                <div class="slider__thumb slider__thumb--left">
-                  <span class="slider__value slider__value--from">1900</span>
-                </div>
-                <div class="slider__thumb slider__thumb--right">
-                  <span class="slider__value slider__value--to">2026</span>
-                </div>
-              </div>
-            </div>
-            <div class="filters__quick">
-              <span class="filters__quick-item" data-year="1900">до 30-х</span>
-              <span class="filters__quick-item" data-year="1930">30-е</span>
-              <span class="filters__quick-item" data-year="1940">40-е</span>
-              <span class="filters__quick-item" data-year="1950">50-е</span>
-              <span class="filters__quick-item" data-year="1960">60-е</span>
-              <span class="filters__quick-item" data-year="1970">70-е</span>
-              <span class="filters__quick-item" data-year="1980">80-е</span>
-              <span class="filters__quick-item" data-year="1990">90-е</span>
-              <span class="filters__quick-item" data-year="2000">2000-е</span>
-              <span class="filters__quick-item" data-year="2010">2010-е</span>
-              <span class="filters__quick-item" data-year="2020">2020-е</span>
-            </div>
-          </div>
-        </div>
-        <div class="filters__group filters__group--rating">
-          <span class="filters__name" data-name="filter">Рейтинг</span>
-          <div
-            class="filters__dropdown filters__dropdown--hidden"
-            data-type="rating"
-          >
-            <div class="slider">
-              <div class="slider__track">
-                <div class="slider__active"></div>
+  <details class="filters__group filters__group--year" name="filters">
+    <summary class="filters__name">Год</summary>
+    <div class="filters__dropdown" data-type="year">
+      <div class="slider">
+        <div class="slider__track">
+          <div class="slider__active"></div>
 
-                <div class="slider__thumb slider__thumb--left">
-                  <span class="slider__value slider__value--from">0.0</span>
-                </div>
-                <div class="slider__thumb slider__thumb--right">
-                  <span class="slider__value slider__value--to">10.0</span>
-                </div>
-              </div>
-            </div>
+          <div class="slider__thumb slider__thumb--left">
+            <span class="slider__value slider__value--from">1900</span>
           </div>
-        </div>
-        <div class="filters__group filters__group--sort">
-          <span class="filters__name" data-name="filter">По популярности</span>
-          <div class="filters__dropdown filters__dropdown--hidden">
-            <span class="filters__list-item" data-sort="popularity.desc"
-              >По популярности</span
-            >
-            <span class="filters__list-item" data-sort="vote_average.desc"
-              >По рейтингу</span
-            >
-            <span class="filters__list-item" data-sort="primary_release_date.asc"
-              >По дате выхода</span
-            >
+          <div class="slider__thumb slider__thumb--right">
+            <span class="slider__value slider__value--to">2026</span>
           </div>
         </div>
       </div>
+      <div class="filters__quick">
+        <span class="filters__quick-item" data-year="1900">до 30-х</span>
+        <span class="filters__quick-item" data-year="1930">30-е</span>
+        <span class="filters__quick-item" data-year="1940">40-е</span>
+        <span class="filters__quick-item" data-year="1950">50-е</span>
+        <span class="filters__quick-item" data-year="1960">60-е</span>
+        <span class="filters__quick-item" data-year="1970">70-е</span>
+        <span class="filters__quick-item" data-year="1980">80-е</span>
+        <span class="filters__quick-item" data-year="1990">90-е</span>
+        <span class="filters__quick-item" data-year="2000">2000-е</span>
+        <span class="filters__quick-item" data-year="2010">2010-е</span>
+        <span class="filters__quick-item" data-year="2020">2020-е</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="filters__group filters__group--rating" name="filters">
+    <summary class="filters__name">Рейтинг</summary>
+    <div class="filters__dropdown" data-type="rating">
+      <div class="slider">
+        <div class="slider__track">
+          <div class="slider__active"></div>
+
+          <div class="slider__thumb slider__thumb--left">
+            <span class="slider__value slider__value--from">0.0</span>
+          </div>
+          <div class="slider__thumb slider__thumb--right">
+            <span class="slider__value slider__value--to">10.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <details class="filters__group filters__group--sort" name="filters">
+    <summary class="filters__name">По популярности</summary>
+    <div class="filters__dropdown" data-type="sort">
+      <span class="filters__list-item" data-sort="popularity.desc">По популярности</span>
+      <span class="filters__list-item" data-sort="vote_average.desc">По рейтингу</span>
+      <span class="filters__list-item" data-sort="primary_release_date.asc">По дате выхода</span>
+    </div>
+  </details>
+</div>
     </main>
     <template id="movie-card">
       <div class="movie-card">

@@ -1,4 +1,5 @@
 import { posterUrl, genres } from "./catalogApi.js";
+import { state } from "./catalogState.js";
 const content = document.querySelector(".content");
 const movieCardTemplate = document.querySelector("#movie-card");
 
@@ -37,6 +38,8 @@ export function renderFilters() {
     let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
     filter.dataset.id = id;
     filter.textContent = genreValue;
+
+    if (state.genres.includes(Number(id))) filter.classList.add('selected');
     if (++count % 3 === 0) filter.style.marginBottom = 10 + "px";
     genreContainer.append(filter);
   });

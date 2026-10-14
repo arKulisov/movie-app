@@ -58,7 +58,7 @@ function normalize(r) {
 let activeRequestController = null;
 
 export async function searchMovies(url) {
-
+  console.log(url)
   activeRequestController?.abort();
   const controller = new AbortController();
   activeRequestController = controller;
