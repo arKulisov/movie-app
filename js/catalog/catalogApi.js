@@ -1,6 +1,5 @@
 import { BASE, PROXY, MODE } from "../config.js";
-import { renderMovieCard } from "../ui/catalogueView.js";
-import { state, setState } from "../state.js"
+import { state, setState } from "./catalogState.js"
 
 // ─── URL ───
 export function buildURL(s) {

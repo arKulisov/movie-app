@@ -1,4 +1,4 @@
-import { posterUrl, genres } from "../api/catalogue.js";
+import { posterUrl, genres } from "./catalogApi.js";
 const content = document.querySelector(".content");
 const movieCardTemplate = document.querySelector("#movie-card");
 
@@ -25,5 +25,19 @@ export function renderMovieCard(items) {
       : "—";
 
     content.append(card);
+  });
+}
+
+
+export function renderFilters() {
+  const genreContainer = document.querySelector('.filters__dropdown');
+  let count = 0;
+  Object.entries(genres).forEach(([id, value]) => {
+    let filter = document.createElement("span");
+    let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
+    filter.dataset.id = id;
+    filter.textContent = genreValue;
+    if (++count % 3 === 0) filter.style.marginBottom = 10 + "px";
+    genreContainer.append(filter);
   });
 }
