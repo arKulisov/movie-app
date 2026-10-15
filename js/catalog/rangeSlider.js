@@ -21,7 +21,9 @@ export function initSlider() {
 }
 
 /// продолжить тут
-
+function restoreSliderState() {
+  updateSlider()
+} 
 
 function selectSlider(container) {
   activeSlider = container.querySelector(".slider");
@@ -69,23 +71,21 @@ function handleThumbMove(e) {
 
   const currentMouseX = e.clientX;
   const differX = currentMouseX - startMouseX;
-  let newThumbX;
   const THUMB_WIDTH = thumbLeft.offsetWidth;
 
-  if (activeThumb === thumbLeft) {
-    newThumbX = Math.max(
+  let newThumbX = activeThumb === thumbLeft //сократил
+    ? Math.max(
       -THUMB_WIDTH,
       Math.min(
         startThumbX + differX,
         passiveThumb.offsetLeft - activeThumb.offsetWidth,
-      ),
-    );
-  } else {
-    newThumbX = Math.max(
+      )
+    : Math.max(
       passiveThumb.offsetLeft + activeThumb.offsetWidth,
-      Math.min(startThumbX + differX, sliderTrack.offsetWidth),
-    );
-  }
+      Math.min(startThumbX + differX, sliderTrack.offsetWidth);
+      
+  
+
   activeThumb.style.left = newThumbX + "px";
 
   updateSlider(thumbLeft.offsetLeft, thumbRight.offsetLeft);
