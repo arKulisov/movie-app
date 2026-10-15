@@ -30,17 +30,17 @@ export function renderMovieCard(items) {
 }
 
 
-export function renderFilters() {
+export function renderGenres() {
   const genreContainer = document.querySelector('.filters__dropdown');
   let count = 0;
   Object.entries(genres).forEach(([id, value]) => {
-    let filter = document.createElement("span");
+    let genre = document.createElement("span");
     let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
-    filter.dataset.id = id;
-    filter.textContent = genreValue;
+    genre.dataset.id = id;
+    genre.textContent = genreValue;
 
-    if (state.genres.includes(Number(id))) filter.classList.add('selected');
-    if (++count % 3 === 0) filter.style.marginBottom = 10 + "px";
-    genreContainer.append(filter);
+    if (state.genres.includes(Number(id))) genre.classList.add('selected');
+    if (++count % 3 === 0) genre.style.marginBottom = 10 + "px";
+    genreContainer.append(genre);
   });
 }
