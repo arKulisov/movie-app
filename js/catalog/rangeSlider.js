@@ -13,6 +13,7 @@ let activeThumb;
 let passiveThumb;
 let fromValue;
 let toValue;
+let sliderTrack;
 let activeSlider;
 
 export function initSlider() {
@@ -23,7 +24,8 @@ export function initSlider() {
 
 
 function selectSlider(container) {
-  activeSlider = container.querySelector(".slider__track");
+  activeSlider = container.querySelector(".slider");
+  sliderTrack = activeSlider.querySelector(".slider__track");
   thumbLeft = activeSlider.querySelector(".slider__thumb--left");
   thumbRight = activeSlider.querySelector(".slider__thumb--right");
   sliderRange = activeSlider.querySelector(".slider__active");
@@ -81,35 +83,27 @@ function handleThumbMove(e) {
   } else {
     newThumbX = Math.max(
       passiveThumb.offsetLeft + activeThumb.offsetWidth,
-      Math.min(startThumbX + differX, activeSlider.offsetWidth),
+      Math.min(startThumbX + differX, sliderTrack.offsetWidth),
     );
   }
   activeThumb.style.left = newThumbX + "px";
 
   updateSlider(thumbLeft.offsetLeft, thumbRight.offsetLeft);
-
   updateValues();
-
-  updateThumbValue(fromValue, toValue);
+  updateThumbValue();
 }
 
 function handlePointerUp(e) {
   if (!isDragging) return;
   isDragging = false;
+  saveSliderValue()
+}
 
-  if (sliderYearContainer.contains(activeSlider)) {
-    refreshCatalog({
-      yearFrom: fromValue,
-      yearTo: toValue,
-      page: 1,
-    });
-  } else if (sliderRatingContainer.contains(activeSlider)) {
-    refreshCatalog({
-      ratingFrom: fromValue,
-      ratingTo: toValue,
-      page: 1,
-    });
-  }
+function saveSliderValue() {
+    let value = activeSLider.classList.contains('.slider-year') 
+    ? { yearFrom: fromValue, yearTo: toValue, page: 1 } 
+    : { ratingFrom: fromValue, ratingTo: toValue, page: 1 }
+  refreshCatalog(value);
 }
 
 function updateSlider(leftX, rightX) {
@@ -118,21 +112,21 @@ function updateSlider(leftX, rightX) {
 }
 
 function posToValues(x) {
-  const percent = x / activeSlider.offsetWidth;
+  const percent = x / sliderTrack.offsetWidth;
 
   const { min, max } = getRange();
   const value = min + percent * (max - min);
 
-  return sliderYearContainer.contains(activeSlider)
+  return sliderYearContainer.contains(sliderTrack)
     ? Math.round(value)
     : value.toFixed(1);
 }
 
 function handleSliderClick(e) {
-  const rect = activeSlider.getBoundingClientRect();
+  const rect = sliderTrack.getBoundingClientRect();
   let clickX = e.clientX - rect.left;
 
-  clickX = Math.max(0, Math.min(clickX, activeSlider.offsetWidth));
+  clickX = Math.max(0, Math.min(clickX, sliderTrack.offsetWidth));
 
   let centerLeft = thumbLeft.offsetLeft + thumbLeft.offsetWidth / 2;
   let centerRight = thumbRight.offsetLeft + thumbRight.offsetWidth / 2;
@@ -152,26 +146,13 @@ function handleSliderClick(e) {
     updateSlider(thumbLeft.offsetLeft, clickX);
   }
   updateValues();
-  updateThumbValue(fromValue, toValue);
-
-  if (sliderYearContainer.contains(activeSlider)) {
-    refreshCatalog({
-      yearFrom: fromValue,
-      yearTo: toValue,
-      page: 1,
-    });
-  } else if (sliderRatingContainer.contains(activeSlider)) {
-    refreshCatalog({
-      ratingFrom: fromValue,
-      ratingTo: toValue,
-      page: 1,
-    });
-  }
+  updateThumbValue();
+  saveSliderValue();
 }
 
-function updateThumbValue(valueOne, valuTwo) {
-  thumbLeft.querySelector("span").textContent = valueOne;
-  thumbRight.querySelector("span").textContent = valuTwo;
+function updateThumbValue() {
+  thumbLeft.querySelector("span").textContent = fromValue;
+  thumbRight.querySelector("span").textContent = toValue;
 }
 
 function updateValues() {
@@ -183,14 +164,14 @@ function updateValues() {
 const yearSelection = document.querySelector(".filters__quick");
 
 function getRange() {
-  return sliderYearContainer.contains(activeSlider)
+  return sliderYearContainer.contains(sliderTrack)
     ? { min: 1900, max: new Date().getFullYear() }
     : { min: 0, max: 10 };
 }
 
 function setSliderValues(from, to) {
   const { min, max } = getRange();
-  const width = activeSlider.offsetWidth;
+  const width = sliderTrack.offsetWidth;
 
   const leftX = ((from - min) / (max - min)) * width - thumbLeft.offsetWidth;
   const rightX = ((to - min) / (max - min)) * width;
@@ -198,7 +179,7 @@ function setSliderValues(from, to) {
   thumbLeft.style.left = leftX + "px";
   thumbRight.style.left = rightX + "px";
 
-  updateThumbValue(from, to);
+  updateThumbValue();
   updateSlider(leftX, rightX);
 }
 
@@ -212,11 +193,11 @@ function handleYearSelection(e) {
   refreshCatalog({ yearFrom: fromValue, yearTo: toValue, page: 1 });
 }
 
-const SortContainer = document.querySelector(
+const sortContainer = document.querySelector(
   ".filters__group--sort .filters__dropdown",
 );
 
-SortContainer.addEventListener("click", handleSortingClick);
+sortContainer.addEventListener("click", handleSortingClick);
 
 function handleSortingClick(e) {
   if (e.target.tagName !== "SPAN") return;
