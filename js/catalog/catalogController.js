@@ -1,13 +1,13 @@
 import { MODE } from "../config.js";
 import { state, setState } from "./catalogState.js";
 import { buildURL, loadGenres, searchMovies, genres } from "./catalogApi.js";
-import { renderMovieCard, renderFilters } from "./catalogView.js";
+import { renderMovieCard, renderGenres } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
 
 export async function initCatalogue() {
   const genres = await loadGenres();
 
-  renderFilters();
+  renderGenres();
   applyGenres();
   applySearch();
   initSlider();
