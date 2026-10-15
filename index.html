@@ -24,8 +24,13 @@
       <div id="loader" class="loader loader--hidden">
         <div class="loader__spinner"></div>
       </div>
-      <div class="content"></div>
-      <div class="filters">
+      <aside class="categories"></aside>
+      <section class="section">
+        <div class="content"></div>
+        <div id="sentinel"></div>
+      </section>
+      
+      <aside class="filters">
   <details class="filters__group filters__group--genres" name="filters">
     <summary class="filters__name">Жанры</summary>
     <div class="filters__dropdown" data-type="genres"></div>
@@ -88,17 +93,13 @@
       <span class="filters__list-item" data-sort="primary_release_date.asc">По дате выхода</span>
     </div>
   </details>
-</div>
+</aside>
     </main>
     <template id="movie-card">
       <div class="movie-card">
-        <img class="movie-card__poster" width="500" height="750" />
-        <div class="movie-card__info">
-          <h3 class="movie-card__name"></h3>
-          <span class="movie-card__genres"></span
-          ><span class="movie-card__rating"></span
-          ><span class="movie-card__year"></span>
-        </div>
+        <img class="movie-card__poster" width="100" height="150" loading="lazy"/>
+        <span class="movie-card__rating"></span>
+
       </div>
     </template>
   </body>

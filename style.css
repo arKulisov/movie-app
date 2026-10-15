@@ -19,26 +19,53 @@
   font-size: 28px;
 }
 
+#sentinel {
+  width: 100%;
+  background-color: white;
+  height: 10px;
+}
+
 /* Content */
 .content {
-  display: flex;
-  width: fit-content;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-rows: auto;
   gap: 15px;
-  flex-wrap: wrap;
-  justify-content: start;
-  align-items: center;
+  place-items: space-between;
 }
 
 /* Movie card */
 .movie-card {
-  width: calc((100% - 25px) / 8);
-  height: 400px;
+  width: 100%;
+  height: 100%;
   background-color: #043a5e;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
+.movie-card:hover {
+  outline: 2px solid white;
+  cursor: pointer;
+}
+
+.movie-card:hover .movie-card__poster {
+  animation: zoom-in-out 5s linear infinite alternate;
+}
+
+@keyframes zoom-in-out {
+  from {
+    transform: scale(1);
+  } to {
+    transform: scale(1.3);
+  }
+}
 .movie-card__poster {
   width: 100%;
-  height: auto;
+  height: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
 }
 
 .movie-card__info {
@@ -51,6 +78,10 @@
 .movie-card__rating,
 .movie-card__genres {
   color: var(--main-text);
+}
+
+.movie-card__rating {
+  position: absolute;
 }
 
 .movie-card__year {
@@ -96,7 +127,7 @@
   justify-content: start;
   padding: 15px;
   gap: 15px;
-  width: 15%;
+  width: 100%;
   background-color: #350135;
   position: relative;
 }
@@ -152,8 +183,8 @@
 
 /* Main layout */
 .main {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 250px 1fr 250px;
   gap: 20px;
   background-color: #001625;
 }
@@ -208,7 +239,6 @@
   left: 12px;
 }
 
-/* Thumb move transition (used in JS) */
 .thumb-move {
   transition: all 0.3s ease-in-out;
 }

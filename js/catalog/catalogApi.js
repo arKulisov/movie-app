@@ -58,7 +58,7 @@ function normalize(r) {
 let activeRequestController = null;
 
 export async function searchMovies(url) {
-  console.log(url)
+  console.log(url, state)
   activeRequestController?.abort();
   const controller = new AbortController();
   activeRequestController = controller;
@@ -75,9 +75,13 @@ export async function searchMovies(url) {
 
     if (controller !== activeRequestController) return;
 
-    return data.results
+    return {
+      items: data.results
       .filter((r) => r.media_type !== "person")
-      .map(normalize);
+      .map(normalize),
+      totalPages: Math.min(data.total_pages, 500)
+    } 
+    
   } catch (err) {
     if (err.name === "AbortError") return;
     console.log(err.message);
@@ -94,3 +98,4 @@ const NO_POSTER = "img/no-poster.svg";
 
 export const posterUrl = (path) =>
   path ? `${PROXY}?url=${encodeURIComponent(TMDB_IMG + path)}` : NO_POSTER;
+

@@ -1,10 +1,27 @@
 import { refreshCatalog } from "./catalogController.js";
+import { state } from "./catalogState.js";
 
 // ─── Слайдеры ───
+const filters = document.querySelector(".filters");
+
+// всё, чем год отличается от рейтинга
+const SLIDERS = {
+  year: {
+    min: 1900,
+    max: new Date().getFullYear(),
+    decimals: 0,
+    from: "yearFrom",
+    to: "yearTo",
+  },
+  rating: { min: 0, max: 10, decimals: 1, from: "ratingFrom", to: "ratingTo" },
+};
+
 let thumbLeft;
 let thumbRight;
-const filters = document.querySelector('.filters');;
 let sliderRange;
+let sliderTrack;
+let activeSlider;
+let activeType;
 
 let startMouseX = 0;
 let startThumbX = 0;
@@ -13,19 +30,37 @@ let activeThumb;
 let passiveThumb;
 let fromValue;
 let toValue;
-let sliderTrack;
-let activeSlider;
 
 export function initSlider() {
   filters.addEventListener("pointerdown", handlePointerDown);
+  document.addEventListener("pointermove", handleThumbMove);
+  document.addEventListener("pointerup", handlePointerUp);
+  document.addEventListener("pointercancel", handlePointerUp);
+
+
+  filters.addEventListener("toggle", (e) => {
+    if (e.target.open) restoreSliderState();
+    },
+    true,
+  );
 }
 
-/// продолжить тут
 function restoreSliderState() {
-  updateSlider()
-} 
+  for (const type of Object.keys(SLIDERS)) {
+    const cfg = SLIDERS[type];
+    const from = state[cfg.from];
+    const to = state[cfg.to];
+    if (from == null || to == null) continue;
+
+    selectSlider(document.querySelector(`[data-type="${type}"]`));
+    if (!sliderTrack.offsetWidth) continue;
+
+    setSliderValues(Number(from), Number(to));
+  }
+}
 
 function selectSlider(container) {
+  activeType = container.dataset.type;
   activeSlider = container.querySelector(".slider");
   sliderTrack = activeSlider.querySelector(".slider__track");
   thumbLeft = activeSlider.querySelector(".slider__thumb--left");
@@ -33,33 +68,22 @@ function selectSlider(container) {
   sliderRange = activeSlider.querySelector(".slider__active");
 }
 
-
-document.addEventListener("pointermove", handleThumbMove);
-
-document.addEventListener("pointerup", handlePointerUp);
-
 function handlePointerDown(e) {
-  const slider = e.target.closest('.slider);
-  if (!slider) return;
-  
+  const container = e.target.closest(".filters__dropdown");
+  if (!container?.querySelector(".slider")) return; 
+
   e.preventDefault();
+  selectSlider(container);
 
-  selectSlider(slider)
+  const thumb = e.target.closest(".slider__thumb");
 
-  if (e.target.tagName === "SPAN") console.log("click");
-
-  if (e.target.classList.contains("slider__thumb")) {
+  if (thumb) {
     isDragging = true;
     startMouseX = e.clientX;
-
-    startThumbX = e.target.offsetLeft;
-    activeThumb = e.target;
-    passiveThumb =
-      e.target.nextElementSibling || e.target.previousElementSibling;
-  } else if (
-    e.target.classList.contains("slider__active") ||
-    e.target.classList.contains("slider__track")
-  ) {
+    startThumbX = thumb.offsetLeft;
+    activeThumb = thumb;
+    passiveThumb = thumb === thumbLeft ? thumbRight : thumbLeft;
+  } else if (e.target.closest(".slider__track")) {
     handleSliderClick(e);
   } else if (e.target.closest(".filters__quick")) {
     handleYearSelection(e);
@@ -69,22 +93,22 @@ function handlePointerDown(e) {
 function handleThumbMove(e) {
   if (!isDragging) return;
 
-  const currentMouseX = e.clientX;
-  const differX = currentMouseX - startMouseX;
+  const differX = e.clientX - startMouseX;
   const THUMB_WIDTH = thumbLeft.offsetWidth;
 
-  let newThumbX = activeThumb === thumbLeft //сократил
-    ? Math.max(
-      -THUMB_WIDTH,
-      Math.min(
-        startThumbX + differX,
-        passiveThumb.offsetLeft - activeThumb.offsetWidth,
-      )
-    : Math.max(
-      passiveThumb.offsetLeft + activeThumb.offsetWidth,
-      Math.min(startThumbX + differX, sliderTrack.offsetWidth);
-      
-  
+  const newThumbX =
+    activeThumb === thumbLeft
+      ? Math.max(
+          -THUMB_WIDTH,
+          Math.min(
+            startThumbX + differX,
+            passiveThumb.offsetLeft - activeThumb.offsetWidth,
+          ),
+        )
+      : Math.max(
+          passiveThumb.offsetLeft + activeThumb.offsetWidth,
+          Math.min(startThumbX + differX, sliderTrack.offsetWidth),
+        );
 
   activeThumb.style.left = newThumbX + "px";
 
@@ -93,17 +117,15 @@ function handleThumbMove(e) {
   updateThumbValue();
 }
 
-function handlePointerUp(e) {
+function handlePointerUp() {
   if (!isDragging) return;
   isDragging = false;
-  saveSliderValue()
+  saveSliderValue();
 }
 
 function saveSliderValue() {
-    let value = activeSLider.classList.contains('.slider-year') 
-    ? { yearFrom: fromValue, yearTo: toValue, page: 1 } 
-    : { ratingFrom: fromValue, ratingTo: toValue, page: 1 }
-  refreshCatalog(value);
+  const cfg = getRange();
+  refreshCatalog({ [cfg.from]: fromValue, [cfg.to]: toValue, page: 1 });
 }
 
 function updateSlider(leftX, rightX) {
@@ -112,14 +134,9 @@ function updateSlider(leftX, rightX) {
 }
 
 function posToValues(x) {
-  const percent = x / sliderTrack.offsetWidth;
-
-  const { min, max } = getRange();
-  const value = min + percent * (max - min);
-
-  return sliderYearContainer.contains(sliderTrack)
-    ? Math.round(value)
-    : value.toFixed(1);
+  const { min, max, decimals } = getRange();
+  const value = min + (x / sliderTrack.offsetWidth) * (max - min);
+  return Number(value.toFixed(decimals));
 }
 
 function handleSliderClick(e) {
@@ -128,48 +145,46 @@ function handleSliderClick(e) {
 
   clickX = Math.max(0, Math.min(clickX, sliderTrack.offsetWidth));
 
-  let centerLeft = thumbLeft.offsetLeft + thumbLeft.offsetWidth / 2;
-  let centerRight = thumbRight.offsetLeft + thumbRight.offsetWidth / 2;
+  const centerLeft = thumbLeft.offsetLeft + thumbLeft.offsetWidth / 2;
+  const centerRight = thumbRight.offsetLeft + thumbRight.offsetWidth / 2;
 
-  let distanceLeft = Math.abs(centerLeft - clickX);
-  let distanceRight = Math.abs(centerRight - clickX);
+  const distanceLeft = Math.abs(centerLeft - clickX);
+  const distanceRight = Math.abs(centerRight - clickX);
 
   if (distanceLeft < distanceRight) {
     const newLeftX = clickX - thumbLeft.offsetWidth;
 
     thumbLeft.style.left = `${newLeftX}px`;
-
     updateSlider(newLeftX, thumbRight.offsetLeft);
   } else {
     thumbRight.style.left = clickX + "px";
-
     updateSlider(thumbLeft.offsetLeft, clickX);
   }
+
   updateValues();
   updateThumbValue();
   saveSliderValue();
 }
 
 function updateThumbValue() {
-  thumbLeft.querySelector("span").textContent = fromValue;
-  thumbRight.querySelector("span").textContent = toValue;
+  const { decimals } = getRange();
+  thumbLeft.querySelector("span").textContent = fromValue.toFixed(decimals);
+  thumbRight.querySelector("span").textContent = toValue.toFixed(decimals);
 }
 
 function updateValues() {
   fromValue = posToValues(thumbLeft.offsetLeft + thumbLeft.offsetWidth);
-
   toValue = posToValues(thumbRight.offsetLeft);
 }
 
-const yearSelection = document.querySelector(".filters__quick");
-
 function getRange() {
-  return sliderYearContainer.contains(sliderTrack)
-    ? { min: 1900, max: new Date().getFullYear() }
-    : { min: 0, max: 10 };
+  return SLIDERS[activeType];
 }
 
 function setSliderValues(from, to) {
+  fromValue = from;
+  toValue = to;
+
   const { min, max } = getRange();
   const width = sliderTrack.offsetWidth;
 
@@ -184,33 +199,13 @@ function setSliderValues(from, to) {
 }
 
 function handleYearSelection(e) {
-  if (e.target.tagName !== "SPAN") return;
+  const item = e.target.closest("[data-year]");
+  if (!item) return;
 
-  fromValue = Number(e.target.dataset.year);
-  toValue = Math.min(fromValue + 10, new Date().getFullYear());
+  const from = Number(item.dataset.year);
+  const to = Math.min(from + 9, getRange().max);
 
-  setSliderValues(fromValue, toValue);
-  refreshCatalog({ yearFrom: fromValue, yearTo: toValue, page: 1 });
+  setSliderValues(from, to);
+  saveSliderValue();
 }
 
-const sortContainer = document.querySelector(
-  ".filters__group--sort .filters__dropdown",
-);
-
-sortContainer.addEventListener("click", handleSortingClick);
-
-function handleSortingClick(e) {
-  if (e.target.tagName !== "SPAN") return;
-  let selected = e.target;
-
-  let container = e.target.closest(".filters__dropdown");
-
-  let activeSpan = container.querySelector(".selected");
-
-  if (activeSpan) activeSpan.classList.remove("selected");
-
-  selected.classList.add("selected");
-
-  console.log(selected.dataset.sort);
-  refreshCatalog({ sortBy: selected.dataset.sort, page: 1 });
-}
