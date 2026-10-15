@@ -3,8 +3,7 @@ import { refreshCatalog } from "./catalogController.js";
 // ─── Слайдеры ───
 let thumbLeft;
 let thumbRight;
-const sliderYearContainer = document.querySelector('[data-type="year"]');
-const sliderRatingContainer = document.querySelector('[data-type="rating"]');
+const filters = document.querySelector('.filters');;
 let sliderRange;
 
 let startMouseX = 0;
@@ -17,8 +16,7 @@ let toValue;
 let activeSlider;
 
 export function initSlider() {
-  sliderYearContainer.addEventListener("pointerdown", handlePointerDown);
-  sliderRatingContainer.addEventListener("pointerdown", handlePointerDown);
+  filters.addEventListener("pointerdown", handlePointerDown);
 }
 
 /// продолжить тут
@@ -37,15 +35,14 @@ document.addEventListener("pointermove", handleThumbMove);
 document.addEventListener("pointerup", handlePointerUp);
 
 function handlePointerDown(e) {
+  const slider = e.target.closest('.slider);
+  if (!slider) return;
+  
   e.preventDefault();
 
+  selectSlider(slider)
+
   if (e.target.tagName === "SPAN") console.log("click");
-  activeSlider = e.target
-    .closest(".filters__dropdown")
-    .querySelector(".slider__track");
-  thumbLeft = activeSlider.querySelector(".slider__thumb--left");
-  thumbRight = activeSlider.querySelector(".slider__thumb--right");
-  sliderRange = activeSlider.querySelector(".slider__active");
 
   if (e.target.classList.contains("slider__thumb")) {
     isDragging = true;
