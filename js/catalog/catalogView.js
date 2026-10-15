@@ -31,7 +31,7 @@ export function renderMovieCard(items) {
 
 
 export function renderGenres() {
-  const genreContainer = document.querySelector('.filters__dropdown');
+  const genreContainer = document.querySelector('[data-type="genres"]');
   let count = 0;
   Object.entries(genres).forEach(([id, value]) => {
     let genre = document.createElement("span");
