@@ -21,6 +21,14 @@ export async function refreshCatalog(changes = {}) {
   if (result) renderMovieCard(result);
 }
 
+const categoryGroup = document.querySelector('.category');
+categoryGroup.addEventListener('pointerdown', applyCategory)
+function applyCategory() {
+  const category = e.target;
+  if (!category.classList.contains('category__name')) return;
+
+} 
+
 function applySearch() {
   const input = document.querySelector(".search__input");
   const button = document.querySelector(".search__button");
