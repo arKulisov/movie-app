@@ -1,9 +1,12 @@
 const defaultState = {
+  version: "movie",
   mode: "discover/movie",
   query: "",
   page: 1,
 
   genres: [],
+  with_keywords: [],
+  without_keywords: [],
   yearFrom: null,
   yearTo: null,
   ratingFrom: null,

@@ -5,42 +5,42 @@ import { renderMovieCard, renderGenres } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
 
 export async function initCatalogue() {
-  const genres = await loadGenres();
-
-  renderGenres();
   applyGenres();
-  applySearch();
   initSlider();
 
-  await refreshCatalog({ mode: MODE.DISCOVER_MOVIE, page: 1 });
+  await refreshCatalog(MODE.movie);
 }
-
-export async function refreshCatalog(changes = {}) {
+export async function refreshCatalog(changes = {}, search = false) {
   setState(changes);
+
+  if (!search) {
+    await loadGenres();
+    renderGenres();
+  }
   const result = await searchMovies(buildURL(state));
+  console.log(state);
   if (result) renderMovieCard(result);
 }
 
 const categoryGroup = document.querySelector('.category');
 categoryGroup.addEventListener('pointerdown', applyCategory)
-function applyCategory() {
+function applyCategory(e) {
   const category = e.target;
   if (!category.classList.contains('category__name')) return;
 
+  refreshCatalog(MODE[category.dataset.mode])
 } 
-
-function applySearch() {
   const input = document.querySelector(".search__input");
   const button = document.querySelector(".search__button");
-
-  const query = input.value.trim();
-  if (!query) return;
-  refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 });
-
   button.addEventListener("click", applySearch);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") applySearch();
   });
+
+function applySearch() {
+  const query = input.value.trim();
+  if (!query) return;
+  refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1}, true);
 }
 
 const genreContainer = document.querySelector(".filters__group--genres");

@@ -1,5 +1,6 @@
-import { posterUrl, genres } from "./catalogApi.js";
+import { posterUrl } from "./catalogApi.js";
 import { state } from "./catalogState.js";
+import { genres } from "./catalogApi.js";
 const content = document.querySelector(".content");
 const movieCardTemplate = document.querySelector("#movie-card");
 
@@ -22,6 +23,7 @@ export function renderMovieCard(result, { append = false } = {}) {
 
 export function renderGenres() {
   const genreContainer = document.querySelector('[data-type="genres"]');
+  genreContainer.replaceChildren();
   let count = 0;
   Object.entries(genres).forEach(([id, value]) => {
     let genre = document.createElement("span");

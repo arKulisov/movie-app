@@ -1,17 +1,14 @@
 export const BASE = "https://api.themoviedb.org/3/";
 export const PROXY = "https://proxy-worker.arkulisov.workers.dev/";
 export const MODE = {
-  DISCOVER_MOVIE: "discover/movie",
-  DISCOVER_TV: "discover/tv",
+  main: { mode: "discover/multi", page: 1 },
+  movie: {version: "movie", mode: "discover/movie", page: 1, with_keywords: [], without_keywords: ["297442"] },
+  toon: { version: "movie", mode: "discover/movie", page: 1, with_keywords: ["297442"], without_keywords: [] },
+  tv: { version: "tv", mode: "discover/tv", page: 1, with_keywords: [], without_keywords: ["210024"] },
+  anime: { version: "tv", mode: "discover/tv", page: 1, with_keywords: ["210024"], without_keywords: [] },
+
   SEARCH_MOVIE: "search/movie",
   SEARCH_TV: "search/tv",
   SEARCH_MULTI: "search/multi",
   SEARCH_PERSON: "search/person",
 };
-
-export const CATEGORY = {
-  MOVIE: { mode: "discover/movie", pages: 1, without_keywords: "animation" },
-  TOON: { mode: "discover/movie", pages: 1, with_keywords: "animation" },
-  TV: { mode: "discover/tv", pages: 1, without_keywords: "anime" },
-  ANIME: { mode: "discover/tv", pages: 1, with_keywords: "anime" }
-}  

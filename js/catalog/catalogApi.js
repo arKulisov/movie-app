@@ -20,21 +20,24 @@ export function buildURL(s) {
       p.set("primary_release_date.lte", `${s.yearTo}-12-31`);
     if (s.ratingFrom != null) p.set("vote_average.gte", s.ratingFrom);
     if (s.ratingTo != null) p.set("vote_average.lte", s.ratingTo);
+    if (s.with_keywords.length) p.set("with_keywords", s.with_keywords.join(","));
+    if (s.without_keywords.length) p.set("without_keywords", s.without_keywords.join(","))
   }
 
   return `${PROXY}?url=${encodeURIComponent(url.toString())}`;
 }
 
 // ─── Жанры ───
-export const genres = {};
+export let genres = {};
 
 export async function loadGenres() {
   try {
     const target =
-      "https://api.themoviedb.org/3/genre/movie/list?language=ru-RU";
+      `https://api.themoviedb.org/3/genre/${state.version}/list?language=ru-RU`;
     const response = await fetch(`${PROXY}?url=${encodeURIComponent(target)}`);
     if (!response.ok) throw new Error("Не удалось загрузить жанры");
     const data = await response.json();
+    genres = {};
     Object.assign(genres, Object.fromEntries(data.genres.map((g) => [g.id, g.name])));
   } catch (err) {
     console.log(err.message);
