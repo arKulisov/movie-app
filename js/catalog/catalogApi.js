@@ -9,7 +9,7 @@ export function buildURL(s) {
   p.set("language", "ru-RU");
   p.set("page", s.page);
 
-  if (s.mode === MODE.SEARCH) {
+  if (s.mode === MODE.SEARCH_MULTI) {
     p.set("query", s.query);
   } else {
     p.set("sort_by", s.sortBy);
