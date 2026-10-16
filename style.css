@@ -132,7 +132,7 @@
   position: relative;
 }
 
-.filters__name {
+.category__name, .filters__name {
   color: var(--second-text);
   cursor: pointer;
   border-radius: 15px;
