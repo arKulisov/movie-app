@@ -17,12 +17,12 @@ export async function initCatalogue() {
 
 export async function refreshCatalog(changes = {}) {
   setState(changes);
-  const items = await searchMovies(buildURL(state));
-  if (items) renderMovieCard(items);
+  const result = await searchMovies(buildURL(state));
+  if (result) renderMovieCard(result);
 }
 
 function applySearch() {
-    const input = document.querySelector(".search__input");
+  const input = document.querySelector(".search__input");
   const button = document.querySelector(".search__button");
 
   const query = input.value.trim();
@@ -31,13 +31,11 @@ function applySearch() {
 
   button.addEventListener("click", applySearch);
   input.addEventListener("keydown", (e) => {
-    console.log('enter')
     if (e.key === "Enter") applySearch();
   });
 }
 
 const genreContainer = document.querySelector(".filters__group--genres");
-
 function applyGenres() {
   genreContainer.addEventListener("click", (e) => {
     const el = e.target;
@@ -59,15 +57,20 @@ document.addEventListener("pointerdown", (e) => {
     });
   });
 
-
 const sortContainer = document.querySelector(
   ".filters__group--sort .filters__dropdown",
 );
-
-
-
 sortContainer.addEventListener("click", handleSortingClick);
 restoreSortState();
+
+function handleSortingClick(e) {
+  const item = e.target.closest("[data-sort]");
+  if (!item) return;
+
+  selectSort(item);
+  sortContainer.closest("details").open = false;
+  refreshCatalog({ sortBy: item.dataset.sort, page: 1 });
+}
 
 function selectSort(item) {
   sortContainer.querySelector(".selected")?.classList.remove("selected");
@@ -81,17 +84,8 @@ function restoreSortState() {
   if (item) selectSort(item);
 }
 
-function handleSortingClick(e) {
-  const item = e.target.closest("[data-sort]");
-  if (!item) return;
-
-  selectSort(item);
-  sortContainer.closest("details").open = false;
-  refreshCatalog({ sortBy: item.dataset.sort, page: 1 });
-}
 
 const sentinel = document.querySelector("#sentinel");
-
 const observer = new IntersectionObserver(
   entries => {
     entries.forEach(entry => {
@@ -100,10 +94,7 @@ const observer = new IntersectionObserver(
   },
   { rootMargin: "300px" }
 );
-
-
 observer.observe(sentinel)
-
 
 let isLoading = false;
 let totalPages = 500;
@@ -111,7 +102,6 @@ let totalPages = 500;
 async function loadMore() {
   if (isLoading || state.page >= totalPages) return;
   isLoading = true;
-  console.log('Вызов')
   state.page += 1;   
   try {
     const result = await searchMovies(buildURL(state));
