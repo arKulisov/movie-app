@@ -12,7 +12,7 @@ export async function initCatalogue() {
   applySearch();
   initSlider();
 
-  await refreshCatalog({ mode: MODE.DISCOVER, page: 1 });
+  await refreshCatalog({ mode: MODE.DISCOVER_MOVIE, page: 1 });
 }
 
 export async function refreshCatalog(changes = {}) {
@@ -27,7 +27,7 @@ function applySearch() {
 
   const query = input.value.trim();
   if (!query) return;
-  refreshCatalog({ mode: MODE.SEARCH, query, page: 1 });
+  refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 });
 
   button.addEventListener("click", applySearch);
   input.addEventListener("keydown", (e) => {
