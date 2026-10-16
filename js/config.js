@@ -12,3 +12,8 @@ export const MODE = {
   SEARCH_MULTI: "search/multi",
   SEARCH_PERSON: "search/person",
 };
+
+export const altGenreNames = new Map([
+  ["Телевизионный фильм", "ТВ фильм"],
+  ["Боевик и Приключения", "Боевик"],
+]);

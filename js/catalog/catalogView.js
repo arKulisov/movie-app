@@ -1,6 +1,7 @@
 import { posterUrl } from "./catalogApi.js";
 import { state } from "./catalogState.js";
 import { genres } from "./catalogApi.js";
+import {altGenreNames} from "../config.js";
 const content = document.querySelector(".content");
 const movieCardTemplate = document.querySelector("#movie-card");
 
@@ -28,7 +29,10 @@ export function renderGenres() {
   Object.entries(genres).forEach(([id, value]) => {
     let genre = document.createElement("span");
     let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
+    console.log(genreValue);
+    if (altGenreNames.get(genreValue)) genreValue = altGenreNames.get(genreValue);
     genre.dataset.id = id;
+    genre.classList.add("filters__list-item");
     genre.textContent = genreValue;
 
     if (state.genres.includes(Number(id))) genre.classList.add("selected");

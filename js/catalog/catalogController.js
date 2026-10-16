@@ -9,6 +9,7 @@ export async function initCatalogue() {
   initSlider();
 
   await refreshCatalog(MODE.movie);
+  initInfiniteScroll();
 }
 export async function refreshCatalog(changes = {}, search = false) {
   setState(changes);
@@ -18,15 +19,15 @@ export async function refreshCatalog(changes = {}, search = false) {
     renderGenres();
   }
   const result = await searchMovies(buildURL(state));
-  console.log(state);
+  console.log(state.page);
   if (result) renderMovieCard(result);
 }
 
 const categoryGroup = document.querySelector('.category');
 categoryGroup.addEventListener('pointerdown', applyCategory)
 function applyCategory(e) {
-  const category = e.target;
-  if (!category.classList.contains('category__name')) return;
+    const category = e.target.closest(".category__name");
+  if (!category || !categoryGroup.contains(category)) return;
 
   refreshCatalog(MODE[category.dataset.mode])
 } 
@@ -94,15 +95,18 @@ function restoreSortState() {
 
 
 const sentinel = document.querySelector("#sentinel");
-const observer = new IntersectionObserver(
+
+function initInfiniteScroll() {
+  const observer = new IntersectionObserver(
   entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) loadMore();
     });
   },
-  { rootMargin: "300px" }
+  { rootMargin: "100px" }
 );
 observer.observe(sentinel)
+}
 
 let isLoading = false;
 let totalPages = 500;
