@@ -5,6 +5,7 @@ import {
   loadGenres,
   searchMovies,
   genres,
+  fetchCatalog
 } from "./catalogApi.js";
 import { renderMovieCard, renderGenres } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
@@ -70,16 +71,17 @@ function showMain() {
 }
 
 async function loadRow(row, target, signal) {
+  let result;
   try {
-    const { items } = await fetchCatalog(
-      buildURL({ ...defaultState, ...row }),
-      signal,
-    );
-    renderMovieCard(items, { target });
+    result = await fetchCatalog(buildURL({ ...defaultState, ...row }), signal);
   } catch (err) {
     if (err.name === "AbortError") return;
+    console.error(row.title, err);   // настоящая причина
     target.textContent = "Не удалось загрузить подборку";
+    return;
   }
+
+  renderMovieCard(result, { target });
 }
 
 

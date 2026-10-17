@@ -88,7 +88,7 @@ export async function searchMovies(url) {
   }
 }
 
-async function fetchCatalog(url, signal) {
+export async function fetchCatalog(url, signal) {
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`Ошибка ${res.status}`);
 

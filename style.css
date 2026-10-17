@@ -198,6 +198,15 @@ button {
 }
 
 
+
+.content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  align-content: start;
+  gap: 16px;
+  width: 100%;
+}
+
 .content--main {
   display: flex;
   flex-direction: column;
@@ -222,16 +231,6 @@ button {
 .collection__content .movie-card {
   flex: 0 0 160px;
   scroll-snap-align: start;
-}
-
-
-
-.content {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  align-content: start;
-  gap: 16px;
-  width: 100%;
 }
 
 #sentinel {
