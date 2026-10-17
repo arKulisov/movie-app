@@ -4,37 +4,70 @@ import {
   buildURL,
   loadGenres,
   searchMovies,
-  genres,
-  fetchCatalog
+  fetchCatalog,
+  cancelCatalogRequest,
 } from "./catalogApi.js";
 import { renderMovieCard, renderGenres } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
+
+const content = document.querySelector(".content");
+const collectionTemplate = document.querySelector("#collection");
+const sentinel = document.querySelector("#sentinel");
+
+// Растёт при каждой смене экрана (категория, поиск, главная).
+// Каждый запрос запоминает своё значение и после await сверяется:
+// если число изменилось, ответ устарел, и рисовать его нельзя.
+let navId = 0;
+let isLoading = false;
+let totalPages = 1;
+let rowsController = null;
+let observer = null;
+
+const isMainShown = () => content.classList.contains("content--main");
 
 export async function initCatalogue() {
   applyGenres();
   initSlider();
 
-  // await refreshCatalog(MODE.movie);
   showMain();
   initInfiniteScroll();
 }
+
 export async function refreshCatalog(changes = {}, search = false) {
+  const id = ++navId;
+  isLoading = true; // пока не пришла первая страница, подгрузка закрыта
+  totalPages = 1;
+
+  leaveMain();
+  content.replaceChildren();
   setState(changes);
 
-  if (!search) {
-    await loadGenres();
-    renderGenres();
+  try {
+    if (!search) {
+      await loadGenres();
+      if (id !== navId) return; // пока грузились жанры, ушли на другой экран
+      renderGenres();
+    }
+
+    const result = await searchMovies(buildURL(state));
+    if (id !== navId || !result) return;
+
+    totalPages = result.totalPages;
+    renderMovieCard(result);
+    recheck();
+  } catch (err) {
+    if (id === navId) console.error(err);
+  } finally {
+    if (id === navId) isLoading = false;
   }
-  const result = await searchMovies(buildURL(state));
-  // console.log(state.page);
-  if (result) renderMovieCard(result);
 }
 
 const categoryGroup = document.querySelector(".category");
-categoryGroup.addEventListener("pointerdown", applyCategory);
+categoryGroup.addEventListener("click", applyCategory); // click, а не pointerdown: лента категорий на телефоне прокручивается
+
 function applyCategory(e) {
   const category = e.target.closest(".category__name");
-  if (!category || !categoryGroup.contains(category)) return;
+  if (!category) return;
 
   if (category.dataset.mode === "main") return showMain();
 
@@ -47,12 +80,12 @@ function applyCategory(e) {
     ratingTo: null,
   });
 }
-const content = document.querySelector(".content");
 
-const collectionTemplate = document.querySelector("#collection");
-let rowsController = null;
-
+// ─── Главная: подборки ───
 function showMain() {
+  navId++; // всё, что ещё грузится для прошлого экрана, теперь устарело
+  isLoading = false;
+  cancelCatalogRequest();
   rowsController?.abort();
   rowsController = new AbortController();
   const { signal } = rowsController;
@@ -70,22 +103,27 @@ function showMain() {
   });
 }
 
+function leaveMain() {
+  rowsController?.abort();
+  content.classList.remove("content--main");
+}
+
 async function loadRow(row, target, signal) {
   let result;
   try {
     result = await fetchCatalog(buildURL({ ...defaultState, ...row }), signal);
   } catch (err) {
     if (err.name === "AbortError") return;
-    console.error(row.title, err);   // настоящая причина
+    console.error(row.title, err);
     target.textContent = "Не удалось загрузить подборку";
     return;
   }
 
+  if (signal.aborted) return; // ушли с главной, пока шёл запрос
   renderMovieCard(result, { target });
 }
 
-
-
+// ─── Поиск ───
 const input = document.querySelector(".search__input");
 const button = document.querySelector(".search__button");
 button.addEventListener("click", applySearch);
@@ -99,6 +137,7 @@ function applySearch() {
   refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 }, true);
 }
 
+// ─── Жанры ───
 const genreContainer = document.querySelector(".filters__group--genres");
 function applyGenres() {
   genreContainer.addEventListener("click", (e) => {
@@ -115,12 +154,13 @@ function applyGenres() {
   });
 }
 
-
 document.addEventListener("pointerdown", (e) => {
   document.querySelectorAll(".filters details[open]").forEach((d) => {
     if (!d.contains(e.target)) d.open = false;
   });
 });
+
+
 
 const sortContainer = document.querySelector(
   ".filters__group--sort .filters__dropdown",
@@ -149,32 +189,43 @@ function restoreSortState() {
   if (item) selectSort(item);
 }
 
-const sentinel = document.querySelector("#sentinel");
+
+
 
 function initInfiniteScroll() {
-  const observer = new IntersectionObserver(
+  observer = new IntersectionObserver(
     (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) loadMore();
-      });
+      if (entries.some((entry) => entry.isIntersecting)) loadMore();
     },
     { rootMargin: "100px" },
   );
   observer.observe(sentinel);
 }
 
-let isLoading = false;
-let totalPages = 500;
+function recheck() {
+  if (!observer) return;
+  observer.unobserve(sentinel);
+  observer.observe(sentinel);
+}
 
 async function loadMore() {
-  if (isLoading || state.page >= totalPages) return;
+  if (isMainShown() || isLoading || state.page >= totalPages) return;
   isLoading = true;
-  state.page += 1;
+
+  const id = navId;
+  const nextPage = state.page + 1;
+
   try {
-    const result = await searchMovies(buildURL(state));
-    if (!result) return;
+    const result = await searchMovies(buildURL({ ...state, page: nextPage }));
+    if (!result || id !== navId) return; 
+
+    state.page = nextPage;
+    totalPages = result.totalPages;
     renderMovieCard(result, { append: true });
+    recheck();
+  } catch (err) {
+    if (id === navId) console.error(err);
   } finally {
-    isLoading = false;
+    if (id === navId) isLoading = false;
   }
 }

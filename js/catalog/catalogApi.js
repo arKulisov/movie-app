@@ -105,3 +105,8 @@ const NO_POSTER = "img/no-poster.svg";
 
 export const posterUrl = (path) =>
   path ? `${PROXY}?url=${encodeURIComponent(TMDB_IMG + path)}` : NO_POSTER;
+
+export function cancelCatalogRequest() {
+  activeRequestController?.abort();
+  activeRequestController = null;
+}
