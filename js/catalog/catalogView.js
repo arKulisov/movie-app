@@ -1,13 +1,16 @@
 import { posterUrl } from "./catalogApi.js";
 import { state } from "./catalogState.js";
 import { genres } from "./catalogApi.js";
-import {altGenreNames} from "../config.js";
+import { altGenreNames, MAIN } from "../config.js";
 const content = document.querySelector(".content");
 const movieCardTemplate = document.querySelector("#movie-card");
 
-export function renderMovieCard(result, { append = false } = {}) {
+
+
+
+export function renderMovieCard(result, { target = content, append = false } = {}) {
   let items = result.items;
-  if (!append) content.replaceChildren();
+  if (!append) target.replaceChildren();
   items.forEach((item) => {
     const card = movieCardTemplate.content.cloneNode(true);
 
@@ -18,7 +21,7 @@ export function renderMovieCard(result, { append = false } = {}) {
       ? item.rating.toFixed(1)
       : "—";
 
-    content.append(card);
+    target.append(card);
   });
 }
 
@@ -29,8 +32,9 @@ export function renderGenres() {
   Object.entries(genres).forEach(([id, value]) => {
     let genre = document.createElement("span");
     let genreValue = value[0].toUpperCase() + value.slice(1, value.length);
-    console.log(genreValue);
-    if (altGenreNames.get(genreValue)) genreValue = altGenreNames.get(genreValue);
+    // console.log(genreValue);
+    if (altGenreNames.get(genreValue))
+      genreValue = altGenreNames.get(genreValue);
     genre.dataset.id = id;
     genre.classList.add("filters__list-item");
     genre.textContent = genreValue;

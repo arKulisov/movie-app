@@ -1,6 +1,11 @@
-import { MODE } from "../config.js";
-import { state, setState } from "./catalogState.js";
-import { buildURL, loadGenres, searchMovies, genres } from "./catalogApi.js";
+import { MODE, MAIN } from "../config.js";
+import { state, setState, defaultState } from "./catalogState.js";
+import {
+  buildURL,
+  loadGenres,
+  searchMovies,
+  genres,
+} from "./catalogApi.js";
 import { renderMovieCard, renderGenres } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
 
@@ -8,7 +13,8 @@ export async function initCatalogue() {
   applyGenres();
   initSlider();
 
-  await refreshCatalog(MODE.movie);
+  // await refreshCatalog(MODE.movie);
+  showMain();
   initInfiniteScroll();
 }
 export async function refreshCatalog(changes = {}, search = false) {
@@ -19,29 +25,76 @@ export async function refreshCatalog(changes = {}, search = false) {
     renderGenres();
   }
   const result = await searchMovies(buildURL(state));
-  console.log(state.page);
+  // console.log(state.page);
   if (result) renderMovieCard(result);
 }
 
-const categoryGroup = document.querySelector('.category');
-categoryGroup.addEventListener('pointerdown', applyCategory)
+const categoryGroup = document.querySelector(".category");
+categoryGroup.addEventListener("pointerdown", applyCategory);
 function applyCategory(e) {
-    const category = e.target.closest(".category__name");
+  const category = e.target.closest(".category__name");
   if (!category || !categoryGroup.contains(category)) return;
 
-  refreshCatalog(MODE[category.dataset.mode])
-} 
-  const input = document.querySelector(".search__input");
-  const button = document.querySelector(".search__button");
-  button.addEventListener("click", applySearch);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") applySearch();
+  if (category.dataset.mode === "main") return showMain();
+
+  refreshCatalog({
+    ...MODE[category.dataset.mode],
+    genres: [],
+    yearFrom: null,
+    yearTo: null,
+    ratingFrom: null,
+    ratingTo: null,
   });
+}
+const content = document.querySelector(".content");
+
+const collectionTemplate = document.querySelector("#collection");
+let rowsController = null;
+
+function showMain() {
+  rowsController?.abort();
+  rowsController = new AbortController();
+  const { signal } = rowsController;
+
+  content.classList.add("content--main");
+  content.replaceChildren();
+
+  MAIN.forEach((row) => {
+    const fragment = collectionTemplate.content.cloneNode(true);
+    const target = fragment.querySelector(".collection__content");
+    fragment.querySelector(".collection__title").textContent = row.title;
+    content.append(fragment);
+
+    loadRow(row, target, signal);
+  });
+}
+
+async function loadRow(row, target, signal) {
+  try {
+    const { items } = await fetchCatalog(
+      buildURL({ ...defaultState, ...row }),
+      signal,
+    );
+    renderMovieCard(items, { target });
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    target.textContent = "Не удалось загрузить подборку";
+  }
+}
+
+
+
+const input = document.querySelector(".search__input");
+const button = document.querySelector(".search__button");
+button.addEventListener("click", applySearch);
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") applySearch();
+});
 
 function applySearch() {
   const query = input.value.trim();
   if (!query) return;
-  refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1}, true);
+  refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 }, true);
 }
 
 const genreContainer = document.querySelector(".filters__group--genres");
@@ -60,11 +113,12 @@ function applyGenres() {
   });
 }
 
+
 document.addEventListener("pointerdown", (e) => {
-    document.querySelectorAll(".filters details[open]").forEach((d) => {
-      if (!d.contains(e.target)) d.open = false;
-    });
+  document.querySelectorAll(".filters details[open]").forEach((d) => {
+    if (!d.contains(e.target)) d.open = false;
   });
+});
 
 const sortContainer = document.querySelector(
   ".filters__group--sort .filters__dropdown",
@@ -93,19 +147,18 @@ function restoreSortState() {
   if (item) selectSort(item);
 }
 
-
 const sentinel = document.querySelector("#sentinel");
 
 function initInfiniteScroll() {
   const observer = new IntersectionObserver(
-  entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) loadMore();
-    });
-  },
-  { rootMargin: "100px" }
-);
-observer.observe(sentinel)
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) loadMore();
+      });
+    },
+    { rootMargin: "100px" },
+  );
+  observer.observe(sentinel);
 }
 
 let isLoading = false;
@@ -114,10 +167,10 @@ let totalPages = 500;
 async function loadMore() {
   if (isLoading || state.page >= totalPages) return;
   isLoading = true;
-  state.page += 1;   
+  state.page += 1;
   try {
     const result = await searchMovies(buildURL(state));
-    if (!result) return; 
+    if (!result) return;
     renderMovieCard(result, { append: true });
   } finally {
     isLoading = false;

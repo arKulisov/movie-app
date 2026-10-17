@@ -1,4 +1,4 @@
-const defaultState = {
+export const defaultState = {
   version: "movie",
   mode: "discover/movie",
   query: "",

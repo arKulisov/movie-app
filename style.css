@@ -197,6 +197,35 @@ button {
   }
 }
 
+
+.content--main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.collection__title {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.collection__content {
+  display: flex;
+  gap: 12px;
+  min-height: 240px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 8px;
+}
+
+.collection__content .movie-card {
+  flex: 0 0 160px;
+  scroll-snap-align: start;
+}
+
+
+
 .content {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
