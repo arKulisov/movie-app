@@ -22,6 +22,7 @@ let isLoading = false;
 let totalPages = 1;
 let rowsController = null;
 let observer = null;
+let activeScreen = null;
 
 const isMainShown = () => content.classList.contains("content--main");
 
@@ -35,7 +36,7 @@ export async function initCatalogue() {
 
 export async function refreshCatalog(changes = {}, search = false) {
   const id = ++navId;
-  isLoading = true; // пока не пришла первая страница, подгрузка закрыта
+  isLoading = true;
   totalPages = 1;
 
   leaveMain();
@@ -45,7 +46,7 @@ export async function refreshCatalog(changes = {}, search = false) {
   try {
     if (!search) {
       await loadGenres();
-      if (id !== navId) return; // пока грузились жанры, ушли на другой экран
+      if (id !== navId) return; 
       renderGenres();
     }
 
@@ -69,7 +70,11 @@ function applyCategory(e) {
   const category = e.target.closest(".category__name");
   if (!category) return;
 
-  if (category.dataset.mode === "main") return showMain();
+  const mode = category.dataset.mode;
+  if (activeScreen === mode) return;
+  activeScreen = mode;
+
+  if (mode === "main") return showMain();
 
   refreshCatalog({
     ...MODE[category.dataset.mode],
@@ -81,9 +86,8 @@ function applyCategory(e) {
   });
 }
 
-// ─── Главная: подборки ───
 function showMain() {
-  navId++; // всё, что ещё грузится для прошлого экрана, теперь устарело
+  navId++;
   isLoading = false;
   cancelCatalogRequest();
   rowsController?.abort();
@@ -119,11 +123,11 @@ async function loadRow(row, target, signal) {
     return;
   }
 
-  if (signal.aborted) return; // ушли с главной, пока шёл запрос
+  if (signal.aborted) return;
   renderMovieCard(result, { target });
 }
 
-// ─── Поиск ───
+
 const input = document.querySelector(".search__input");
 const button = document.querySelector(".search__button");
 button.addEventListener("click", applySearch);
@@ -132,12 +136,13 @@ input.addEventListener("keydown", (e) => {
 });
 
 function applySearch() {
+  activeScreen = "search";
   const query = input.value.trim();
   if (!query) return;
   refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 }, true);
 }
 
-// ─── Жанры ───
+
 const genreContainer = document.querySelector(".filters__group--genres");
 function applyGenres() {
   genreContainer.addEventListener("click", (e) => {
