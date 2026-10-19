@@ -37,6 +37,24 @@ export function buildURL(s) {
   return `${PROXY}?url=${encodeURIComponent(url.toString())}`;
 }
 
+export function buildDetailsURL(id, type) {
+  if (type !== "movie" && type !== "tv") {
+    throw new Error(`Неизвестный тип медиа: ${type}`);
+  }
+
+  const url = new URL(`${type}/${encodeURIComponent(id)}`, BASE);
+  const p = url.searchParams;
+  p.set("language", "ru-RU");
+  p.set(
+    "append_to_response",
+    type === "movie"
+      ? "credits,videos,recommendations,release_dates"
+      : "credits,videos,recommendations,content_ratings",
+  );
+
+  return `${PROXY}?url=${encodeURIComponent(url.toString())}`;
+}
+
 
 // ─── Жанры ───
 export let genres = {};
@@ -60,6 +78,7 @@ export async function loadGenres() {
 // ─── Нормализация ───
 function normalize(r) {
   return {
+    id: r.id,
     type: r.media_type,
     title: r.title ?? r.name,
     date: r.release_date ?? r.first_air_date,
@@ -91,8 +110,8 @@ export async function searchMovies(url) {
 export async function fetchCatalog(url, signal) {
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`Ошибка ${res.status}`);
-
   const data = await res.json();
+
   return {
     items: data.results.filter((r) => r.media_type !== "person").map(normalize),
     totalPages: Math.min(data.total_pages, 500),
@@ -110,3 +129,26 @@ export function cancelCatalogRequest() {
   activeRequestController?.abort();
   activeRequestController = null;
 }
+
+export async function fetchDetails(url) {
+  if (!url) throw new Error("Не указан URL для запроса деталей");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+  const data = await res.json();
+  return data;
+}
+
+function normalizeDetails(details, type) {
+  return {
+    title: details.title ?? details.name,
+    originalTitle: details.original_title ?? details.original_name,
+    releaseDate: details.release_date ?? details.first_air_date,
+    runtime: details.runtime ?? details.episode_run_time?.[0] ?? null,
+    overview: details.overview ?? "Описание отсутствует",
+    poster: details.poster_path ?? details.backdrop_path ?? null,
+    creators: details.credits?.crew?.filter((c) => c.job === "Director" || c.job === "Creator") ?? details.created_by ?? [],
+    creditCast: details.cast?.slice(0, 12) ?? [],
+
+
+
+  }}

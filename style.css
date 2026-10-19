@@ -226,6 +226,26 @@ button {
   overflow-x: auto;
   scroll-snap-type: x proximity;
   padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #555 transparent; 
+}
+
+.collection__content::-webkit-scrollbar {
+  height: 6px;
+}
+
+.collection__content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.collection__content::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.collection__content::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }
 
 .collection__content .movie-card {

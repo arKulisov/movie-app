@@ -6,6 +6,8 @@ import {
   searchMovies,
   fetchCatalog,
   cancelCatalogRequest,
+  buildDetailsURL,
+  fetchDetails
 } from "./catalogApi.js";
 import { renderMovieCard, renderGenres } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
@@ -30,6 +32,7 @@ export async function initCatalogue() {
   initSlider();
 
   showMain();
+  initCollectionScroll()
   initInfiniteScroll();
 }
 
@@ -82,7 +85,7 @@ function applyCategory(e) {
 }
 
 // ─── Главная: подборки ───
-function showMain() {
+async function showMain() {
   navId++; // всё, что ещё грузится для прошлого экрана, теперь устарело
   isLoading = false;
   cancelCatalogRequest();
@@ -98,7 +101,6 @@ function showMain() {
     const target = fragment.querySelector(".collection__content");
     fragment.querySelector(".collection__title").textContent = row.title;
     content.append(fragment);
-
     loadRow(row, target, signal);
   });
 }
@@ -120,7 +122,7 @@ async function loadRow(row, target, signal) {
   }
 
   if (signal.aborted) return; // ушли с главной, пока шёл запрос
-  renderMovieCard(result, { target });
+  renderMovieCard(result, { target, type: row.version });
 }
 
 // ─── Поиск ───
@@ -229,3 +231,38 @@ async function loadMore() {
     if (id === navId) isLoading = false;
   }
 }
+
+
+
+function initCollectionScroll() {
+  content.addEventListener('wheel', (e) => {
+    const el = e.target.closest('.collection__content');
+    if (!el) return;
+
+    if (el.scrollWidth <= el.clientWidth) return;
+    if (e.deltaY === 0) return;
+
+    const atStart = el.scrollLeft <= 0;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  }, { passive: false });
+}
+
+
+
+content.addEventListener("pointerdown", async (e) => {
+  const card = e.target.closest(".movie-card");
+  if (!card) return;
+  const id = card.dataset.id;
+  const type = card.dataset.type;
+  if (!id || !type) return;
+  console.log(`Clicked on card: id=${id}, type=${type}`);
+
+  const url = buildDetailsURL(id, type);
+  const details = await fetchDetails(url);
+  console.log("Fetched details:", details);
+  // renderDetails(details, type);
+})
