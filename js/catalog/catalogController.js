@@ -9,7 +9,7 @@ import {
   buildDetailsURL,
   fetchDetails
 } from "./catalogApi.js";
-import { renderMovieCard, renderGenres } from "./catalogView.js";
+import { renderMovieCard, renderGenres, renderDetails } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
 
 const content = document.querySelector(".content");
@@ -67,7 +67,7 @@ export async function refreshCatalog(changes = {}, search = false) {
 }
 
 const categoryGroup = document.querySelector(".category");
-categoryGroup.addEventListener("click", applyCategory); // click, а не pointerdown: лента категорий на телефоне прокручивается
+categoryGroup.addEventListener("click", applyCategory);
 
 function applyCategory(e) {
   const category = e.target.closest(".category__name");
@@ -242,7 +242,7 @@ async function loadMore() {
 
 function initCollectionScroll() {
   content.addEventListener('wheel', (e) => {
-    const el = e.target.closest('.collection__content');
+    const el = e.target.closest('.scroll__content');
     if (!el) return;
 
     if (el.scrollWidth <= el.clientWidth) return;
@@ -260,6 +260,7 @@ function initCollectionScroll() {
 
 
 content.addEventListener("pointerdown", async (e) => {
+  activeScreen = "details";
   const card = e.target.closest(".movie-card");
   if (!card) return;
   const id = card.dataset.id;
@@ -268,7 +269,9 @@ content.addEventListener("pointerdown", async (e) => {
   console.log(`Clicked on card: id=${id}, type=${type}`);
 
   const url = buildDetailsURL(id, type);
+  console.log(`Fetching details from URL: ${url}`);
   const details = await fetchDetails(url);
   console.log("Fetched details:", details);
-  // renderDetails(details, type);
+  const src = card.querySelector(".movie-card__poster").src;
+  renderDetails(details, src)
 })

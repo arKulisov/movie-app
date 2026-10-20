@@ -119,36 +119,53 @@ export async function fetchCatalog(url, signal) {
 }
 
 // ─── Постеры ───
-const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
+const TMDB_IMAGE_BASE  = "https://image.tmdb.org/t/p/";
 const NO_POSTER = "img/no-poster.svg";
 
-export const posterUrl = (path) =>
-  path ? `${PROXY}?url=${encodeURIComponent(TMDB_IMG + path)}` : NO_POSTER;
+const imageUrl = (path, size) =>
+  path
+    ? `${PROXY}?url=${encodeURIComponent(`${TMDB_IMAGE_BASE}${size}${path}`)}`
+    : NO_POSTER;
+
+export const posterUrl = (path) => imageUrl(path, "w500");
+export const backdropUrl = (path) => imageUrl(path, "w1280");
 
 export function cancelCatalogRequest() {
   activeRequestController?.abort();
   activeRequestController = null;
 }
 
+function normalizeDetails(d) {
+  return {
+    title: d.title ?? d.name,
+    originalTitle: d.original_title ?? d.original_name,
+    tagline: d.tagline ?? null,
+    overview: d.overview ?? "Описание отсутствует",
+    originalCountry: d.origin_country ?? null,
+    backdrop: d.backdrop_path ?? null,
+    trailer: d.videos?.results?.find((v) => v.type === "Trailer" && v.site === "YouTube")?.key ?? null,
+    releaseDate: d.release_date ?? d.first_air_date,
+    runtime: d.runtime ?? d.episode_run_time?.[0] ?? null,
+    creators:
+      [d.creators, d.created_by].find(
+        (creators) => Array.isArray(creators) && creators.length > 0,
+      ) ??
+      d.credits?.crew?.filter(
+        (c) => c.job === "Director" || c.job === "Creator",
+      ) ??
+      [],
+    cast: d.credits?.cast?.slice(0, 12) ?? [],
+    rating: d.vote_average ?? null,
+    genres: d.genres?.map((g) => g.name) ?? [],
+    recommendations: d.recommendations?.results?.map(normalize) ?? [],
+    budget: d.budget ?? null,
+    revenue: d.revenue ?? null,
+  }}
+
 export async function fetchDetails(url) {
   if (!url) throw new Error("Не указан URL для запроса деталей");
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Ошибка ${res.status}`);
   const data = await res.json();
-  return data;
+  return normalizeDetails(data);
 }
-
-function normalizeDetails(details, type) {
-  return {
-    title: details.title ?? details.name,
-    originalTitle: details.original_title ?? details.original_name,
-    releaseDate: details.release_date ?? details.first_air_date,
-    runtime: details.runtime ?? details.episode_run_time?.[0] ?? null,
-    overview: details.overview ?? "Описание отсутствует",
-    poster: details.poster_path ?? details.backdrop_path ?? null,
-    creators: details.credits?.crew?.filter((c) => c.job === "Director" || c.job === "Creator") ?? details.created_by ?? [],
-    creditCast: details.cast?.slice(0, 12) ?? [],
-
-
-
-  }}

@@ -1,4 +1,4 @@
-import { posterUrl } from "./catalogApi.js";
+import { posterUrl, backdropUrl } from "./catalogApi.js";
 import { state } from "./catalogState.js";
 import { genres } from "./catalogApi.js";
 import { altGenreNames, MAIN } from "../config.js";
@@ -52,9 +52,77 @@ export function renderGenres() {
   });
 }
 
-export function renderDetails(details, type) {
+export function renderDetails(details, src) {
   content.replaceChildren();
-  
+
   const screen = detailsTemplate.content.cloneNode(true);
+
+  const backdrop = screen.querySelector(".movie-screen__backdrop");
+  if (details.backdrop) {
+    backdrop.src = backdropUrl(details.backdrop);
+    backdrop.alt = details.title + " backdrop";
+  } else {
+    backdrop.style.backgroundColor = "#222";
+  }
   const title = screen.querySelector(".movie-screen__title");
+  title.textContent = details.title;
+
+  const poster = screen.querySelector(".movie-screen__poster");
+  poster.src = src;
+  poster.alt = details.title;
+
+  const overview = screen.querySelector(".movie-screen__overview");
+  overview.textContent = details.overview;
+
+  const tagline = screen.querySelector(".movie-screen__tagline");
+  tagline.textContent = details.tagline || "";
+  tagline.style.display = details.tagline ? "block" : "none";
+
+  const rating = screen.querySelector(".movie-screen__rating");
+  rating.textContent = details.rating.toFixed(1);
+
+  const genres = screen.querySelector(".movie-screen__genres");
+  genres.textContent = details.genres.join(", ");
+
+  const runtime = screen.querySelector(".movie-screen__runtime");
+  runtime.textContent = details.runtime ? `${details.runtime} мин.` : "—";
+
+  const creators = screen.querySelector(".movie-screen__creators-list");
+  const cast = screen.querySelector(".movie-screen__cast-list");
+  creators.replaceChildren(createPeopleCards(details.creators));
+  cast.replaceChildren(createPeopleCards(details.cast));
+  content.append(screen);
+}
+
+function createPeopleCards(people = []) {
+  const fragment = document.createDocumentFragment();
+
+  people.forEach((person) => {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    const img = document.createElement("img");
+    const name = document.createElement("span");
+    const role = document.createElement("span");
+
+    link.dataset.id = person.id;
+    link.classList.add("movie-screen__cast-link");
+
+    img.src = posterUrl(person.profile_path);
+    img.alt = person.name;
+    img.classList.add("movie-screen__cast-poster");
+
+    name.textContent = person.name;
+    name.classList.add("movie-screen__cast-name");
+
+    role.textContent = person.character ?? person.job ?? "";
+    role.classList.add("movie-screen__cast-character");
+
+    link.append(img, name);
+    if (role.textContent) link.append(role);
+
+    item.append(link);
+    fragment.append(item);
+  });
+
+  return fragment;
 }

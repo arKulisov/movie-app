@@ -1,189 +1,211 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MovieFinder</title>
-    <link rel="stylesheet" href="style.css" />
-    <script type="module" src="js/main.js"></script>
-  </head>
-  <body>
-    <header class="header">
-      <h1 class="header__title">MovieSearch</h1>
-      <div class="search">
-        <input
-          type="text"
-          name="search"
-          class="search__input"
-          id="search-input"
-        />
-        <button type="button" class="search__button">Поиск</button>
-      </div>
-    </header>
-    <main class="main">
-      <div id="loader" class="loader loader--hidden">
-        <div class="loader__spinner"></div>
-      </div>
-      <aside class="category">
-        <ul>
-          <li>
-            <button type="button" class="category__name" data-mode="main">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-grid preview-icon"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
-              Главная
-            </button>
-          </li>
-          <li>
-            <button type="button" class="category__name" data-mode="movie">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m12.296 3.464 3.02 3.956" />
-                <path
-                  d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"
-                />
-                <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <path d="m6.18 5.276 3.1 3.899" />
-              </svg>
-              Фильмы
-            </button>
-          </li>
-          <li>
-            <button type="button" class="category__name" data-mode="tv">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tv preview-icon"><path d="m17 2-5 5-5-5"/><rect width="20" height="15" x="2" y="7" rx="2"/></svg>
-              Сериалы
-            </button>
-          </li>
-          <li>
-            <button type="button" class="category__name" data-mode="toon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mickey"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5.5 3a3.5 3.5 0 0 1 3.25 4.8a7.017 7.017 0 0 0 -2.424 2.1a3.5 3.5 0 1 1 -.826 -6.9" /><path d="M18.5 3a3.5 3.5 0 1 1 -.826 6.902a7.013 7.013 0 0 0 -2.424 -2.103a3.5 3.5 0 0 1 3.25 -4.799" /><path d="M5 14a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /></svg>
-              Мультфильмы
-            </button>
-          </li>
-          <li>
-            <button type="button" class="category__name" data-mode="anime">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-language-hiragana"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 5h7" /><path d="M7 4c0 4.846 0 7 .5 8" /><path d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143" /><path d="M12 20l4 -9l4 9" /><path d="M19.1 18h-6.2" /></svg>
-              Аниме
-            </button>
-          </li>
-        </ul>
-      </aside>
-      <section class="section">
-        <div class="content"></div>
-        <div id="sentinel"></div>
-      </section>
 
-      <aside class="filters">
-        <details class="filters__group filters__group--genres" name="filters">
-          <summary class="filters__name">Жанры</summary>
-          <div class="filters__dropdown" data-type="genres"></div>
-        </details>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MovieFinder</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="js/main.js"></script>
+</head>
 
-        <details class="filters__group filters__group--year" name="filters">
-          <summary class="filters__name">Год</summary>
-          <div class="filters__dropdown" data-type="year">
-            <div class="slider slider-year">
-              <div class="slider__track">
-                <div class="slider__active"></div>
+<body>
+  <header class="header">
+    <h1 class="header__title">MovieSearch</h1>
+    <div class="search">
+      <input type="text" name="search" class="search__input" id="search-input" />
+      <button type="button" class="search__button">Поиск</button>
+    </div>
+  </header>
+  <main class="main">
+    <div id="loader" class="loader loader--hidden">
+      <div class="loader__spinner"></div>
+    </div>
+    <aside class="category">
+      <ul>
+        <li>
+          <button type="button" class="category__name" data-mode="main">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-layout-grid preview-icon">
+              <rect width="7" height="7" x="3" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="14" rx="1" />
+              <rect width="7" height="7" x="3" y="14" rx="1" />
+            </svg>
+            Главная
+          </button>
+        </li>
+        <li>
+          <button type="button" class="category__name" data-mode="movie">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m12.296 3.464 3.02 3.956" />
+              <path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z" />
+              <path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <path d="m6.18 5.276 3.1 3.899" />
+            </svg>
+            Фильмы
+          </button>
+        </li>
+        <li>
+          <button type="button" class="category__name" data-mode="tv">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-tv preview-icon">
+              <path d="m17 2-5 5-5-5" />
+              <rect width="20" height="15" x="2" y="7" rx="2" />
+            </svg>
+            Сериалы
+          </button>
+        </li>
+        <li>
+          <button type="button" class="category__name" data-mode="toon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-mickey">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M5.5 3a3.5 3.5 0 0 1 3.25 4.8a7.017 7.017 0 0 0 -2.424 2.1a3.5 3.5 0 1 1 -.826 -6.9" />
+              <path d="M18.5 3a3.5 3.5 0 1 1 -.826 6.902a7.013 7.013 0 0 0 -2.424 -2.103a3.5 3.5 0 0 1 3.25 -4.799" />
+              <path d="M5 14a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+            </svg>
+            Мультфильмы
+          </button>
+        </li>
+        <li>
+          <button type="button" class="category__name" data-mode="anime">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-language-hiragana">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M4 5h7" />
+              <path d="M7 4c0 4.846 0 7 .5 8" />
+              <path
+                d="M10 8.5c0 2.286 -2 4.5 -3.5 4.5s-2.5 -1.135 -2.5 -2c0 -2 1 -3 3 -3s5 .57 5 2.857c0 1.524 -.667 2.571 -2 3.143" />
+              <path d="M12 20l4 -9l4 9" />
+              <path d="M19.1 18h-6.2" />
+            </svg>
+            Аниме
+          </button>
+        </li>
+      </ul>
+    </aside>
+    <section class="section">
+      <div class="content"></div>
+      <div id="sentinel"></div>
+    </section>
 
-                <div class="slider__thumb slider__thumb--left">
-                  <span class="slider__value slider__value--from">1900</span>
-                </div>
-                <div class="slider__thumb slider__thumb--right">
-                  <span class="slider__value slider__value--to">2026</span>
-                </div>
+    <aside class="filters">
+      <details class="filters__group filters__group--genres" name="filters">
+        <summary class="filters__name">Жанры</summary>
+        <div class="filters__dropdown" data-type="genres"></div>
+      </details>
+
+      <details class="filters__group filters__group--year" name="filters">
+        <summary class="filters__name">Год</summary>
+        <div class="filters__dropdown" data-type="year">
+          <div class="slider slider-year">
+            <div class="slider__track">
+              <div class="slider__active"></div>
+
+              <div class="slider__thumb slider__thumb--left">
+                <span class="slider__value slider__value--from">1900</span>
               </div>
-            </div>
-            <div class="filters__quick">
-  <button type="button" class="filters__quick-item" data-year="1900">до 30-х</button>
-  <button type="button" class="filters__quick-item" data-year="1930">30-е</button>
-  <button type="button" class="filters__quick-item" data-year="1940">40-е</button>
-  <button type="button" class="filters__quick-item" data-year="1950">50-е</button>
-  <button type="button" class="filters__quick-item" data-year="1960">60-е</button>
-  <button type="button" class="filters__quick-item" data-year="1970">70-е</button>
-  <button type="button" class="filters__quick-item" data-year="1980">80-е</button>
-  <button type="button" class="filters__quick-item" data-year="1990">90-е</button>
-  <button type="button" class="filters__quick-item" data-year="2000">2000-е</button>
-  <button type="button" class="filters__quick-item" data-year="2010">2010-е</button>
-  <button type="button" class="filters__quick-item" data-year="2020">2020-е</button>
-</div>
-        </details>
-
-        <details class="filters__group filters__group--rating" name="filters">
-          <summary class="filters__name">Рейтинг</summary>
-          <div class="filters__dropdown" data-type="rating">
-            <div class="slider slider-rating">
-              <div class="slider__track">
-                <div class="slider__active"></div>
-
-                <div class="slider__thumb slider__thumb--left">
-                  <span class="slider__value slider__value--from">0.0</span>
-                </div>
-                <div class="slider__thumb slider__thumb--right">
-                  <span class="slider__value slider__value--to">10.0</span>
-                </div>
+              <div class="slider__thumb slider__thumb--right">
+                <span class="slider__value slider__value--to">2026</span>
               </div>
             </div>
           </div>
-        </details>
-
-        <details class="filters__group filters__group--sort" name="filters">
-          <summary class="filters__name">По популярности</summary>
-          <div class="filters__dropdown" data-type="sort">
-            <button class="filters__list-item" data-sort="popularity.desc"
-              >По популярности</button
-            >
-            <button class="filters__list-item" data-sort="vote_average.desc"
-              >По рейтингу</button
-            >
-            <button
-              class="filters__list-item"
-              data-sort="primary_release_date.asc"
-              >По дате выхода</button
-            >
+          <div class="filters__quick">
+            <button type="button" class="filters__quick-item" data-year="1900">до 30-х</button>
+            <button type="button" class="filters__quick-item" data-year="1930">30-е</button>
+            <button type="button" class="filters__quick-item" data-year="1940">40-е</button>
+            <button type="button" class="filters__quick-item" data-year="1950">50-е</button>
+            <button type="button" class="filters__quick-item" data-year="1960">60-е</button>
+            <button type="button" class="filters__quick-item" data-year="1970">70-е</button>
+            <button type="button" class="filters__quick-item" data-year="1980">80-е</button>
+            <button type="button" class="filters__quick-item" data-year="1990">90-е</button>
+            <button type="button" class="filters__quick-item" data-year="2000">2000-е</button>
+            <button type="button" class="filters__quick-item" data-year="2010">2010-е</button>
+            <button type="button" class="filters__quick-item" data-year="2020">2020-е</button>
           </div>
-        </details>
-      </aside>
-    </main>
-    <template id="movie-card">
-      <div class="movie-card">
-        <img
-          class="movie-card__poster"
-          width="100"
-          height="150"
-          loading="lazy"
-        />
-        <span class="movie-card__rating"></span>
-      </div>
-    </template>
-    <template id="collection">
-      <div class="collection">
-        <h2 class="collection__title"></h2>
-        <div class="collection__content"></div>
-      </div>
-    </template>
-    <template id="movie-screen">
-      <div class="movie-screen">
-        <div class="movie-screen__hero">
-          <img />
-          <div class="movie-screen__info">
-          <h2 class="movie-screen__title"></h2>
+      </details>
+
+      <details class="filters__group filters__group--rating" name="filters">
+        <summary class="filters__name">Рейтинг</summary>
+        <div class="filters__dropdown" data-type="rating">
+          <div class="slider slider-rating">
+            <div class="slider__track">
+              <div class="slider__active"></div>
+
+              <div class="slider__thumb slider__thumb--left">
+                <span class="slider__value slider__value--from">0.0</span>
+              </div>
+              <div class="slider__thumb slider__thumb--right">
+                <span class="slider__value slider__value--to">10.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="filters__group filters__group--sort" name="filters">
+        <summary class="filters__name">По популярности</summary>
+        <div class="filters__dropdown" data-type="sort">
+          <button class="filters__list-item" data-sort="popularity.desc">По популярности</button>
+          <button class="filters__list-item" data-sort="vote_average.desc">По рейтингу</button>
+          <button class="filters__list-item" data-sort="primary_release_date.asc">По дате выхода</button>
+        </div>
+      </details>
+    </aside>
+  </main>
+  <template id="movie-card">
+    <div class="movie-card">
+      <img class="movie-card__poster" width="100" height="150" loading="lazy" />
+      <span class="movie-card__rating"></span>
+    </div>
+  </template>
+  <template id="collection">
+    <div class="collection">
+      <h2 class="collection__title"></h2>
+      <div class="collection__content scroll__content"></div>
+    </div>
+  </template>
+  <template id="movie-screen">
+    <div class="movie-screen">
+      <div class="movie-screen__hero">
+        <img class="movie-screen__backdrop" alt="" />
+        <img class="movie-screen__poster" />
+        <div class="movie-screen__info">
+          <ul class="movie-screen__eyebrow">
+            <li><strong></strong> <span class="movie-screen__year"></span></li>
+          </ul>
+          <div class="movie-screen__head">
+            <h2 class="movie-screen__title"></h2>
+            <p class="movie-screen__tagline"></p>
+            <p class="movie-screen__rating"></p>
+          </div>
           <p class="movie-screen__overview"></p>
           <ul class="movie-screen__details">
-            <li><strong>Жанры:</strong> <span class="movie-screen__genres"></span></li>
-            <li><strong>Год:</strong> <span class="movie-screen__year"></span></li>
-            <li><strong>Рейтинг:</strong> <span class="movie-screen__rating"></span></li>
+            <li><strong></strong> <span class="movie-screen__genres"></span></li>
+            <li><strong></strong> <span class="movie-screen__runtime"></span></li>
           </ul>
         </div>
-        </div>
-    </template>
-  </body>
+      </div>
+      <div class="movie-screen__creators">
+        <h3 class="movie-screen__section-title">Режиссер</h3>
+        <div class="movie-screen__creators-list scroll__content"></div>
+      </div>
+      <div class="movie-screen__cast">
+        <h3 class="movie-screen__section-title">Актерский состав</h3>
+        <div class="movie-screen__cast-list scroll__content"></div>
+      </div>
+      <div class="movie-screen__recommendations">
+        <h3 class="movie-screen__section-title">Рекомендации</h3>
+        <div class="movie-screen__recommendations-list"></div>
+      </div>
+    </div>
+  </template>
+</body>
+
 </html>
