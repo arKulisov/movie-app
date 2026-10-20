@@ -20,7 +20,7 @@
 
   --header-h: 64px;
   --category-width: 220px;
-  --filter-width: 250px;
+  --filter-width: 220px;
 }
 
 *,
@@ -154,14 +154,33 @@ button {
     var(--category-width) minmax(0, 1fr)
     var(--filter-width);
   min-height: calc(100vh - var(--header-h));
+
+  --cat-w: var(--category-width);
+  --fil-w: var(--filter-width);
+
+  display: grid;
+  grid-template-columns: var(--cat-w) 1fr var(--fil-w);
+  overflow-x: clip;
+  transition: grid-template-columns 0.25s ease;
+}
+
+
+@media (max-width: 860px) {
+  .category,
+  .filters { width: auto; }
+
+  .main.is-category-hidden .category,
+  .main.is-filters-hidden .filters { transform: none; }
 }
 
 .section {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 20px;
   border-inline: 1px solid var(--line);
+  	background: var(--surface);
+
 }
 
 .loader {
@@ -201,10 +220,12 @@ button {
 
 .content {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(6, minmax(160px, 1fr));
   align-content: start;
   gap: 16px;
   width: 100%;
+  padding: 20px;
+padding: 20px clamp(35px, 2cqi, 56px)
 }
 
 .content--main {
@@ -337,6 +358,86 @@ button {
   gap: 2px;
   list-style: none;
 }
+
+.main {
+  overflow-x: clip; /* уехавшая панель не даёт горизонтальной прокрутки, sticky не ломается */
+}
+
+/* ── панели ── */
+.category,
+.filters {
+  --shift-w: 32px;
+  position: sticky;
+  top: var(--header-h);
+  align-self: start;
+  height: calc(100vh - var(--header-h));
+  transition: transform 0.25s ease; /* на базовом правиле: работает и при скрытии, и при показе */
+}
+
+.category { width: var(--category-width); justify-self: start; }
+.filters  { width: var(--filter-width);   justify-self: end; }
+
+.main.is-category-hidden { --cat-w: 0px; }
+.main.is-filters-hidden  { --fil-w: 0px; }
+
+.main.is-category-hidden .category { transform: translateX(-100%); }
+.main.is-filters-hidden  .filters  { transform: translateX(100%); }
+
+.main.is-category-hidden .category ul,
+.main.is-filters-hidden .filters details {
+  visibility: hidden;
+  transition: visibility 0s 0.25s;
+}
+
+/* ── ручки ── */
+.shift__button {
+  --x: 0%;
+  --r: 0deg;
+
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--shift-w);
+  height: 80px;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transform: translateY(-50%) translateX(var(--x)) rotate(var(--r));
+  transition: transform 0.25s ease;
+}
+
+.category .shift__button { right: -1px; border-right:none;}
+.filters  .shift__button { left: -1px; border-left:none;}
+
+.main.is-category-hidden .category .shift__button { --x: 100%;  --r: 180deg; border: none;}
+.main.is-filters-hidden  .filters  .shift__button { --x: -100%; --r: 180deg; border: none;}
+
+@media (max-width: 860px) {
+  .shift__button { display: none; }
+
+  .category,
+  .filters,
+  .main.is-category-hidden .category,
+  .main.is-filters-hidden .filters {
+    width: auto;
+    height: auto;
+    transform: none;
+  }
+
+  .main.is-category-hidden .category ul,
+  .main.is-filters-hidden .filters details { visibility: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category, .filters, .shift__button { transition: none; }
+}
+
 
 .category__name,
 .filters__name {
@@ -612,6 +713,7 @@ summary::-webkit-details-marker {
   .category {
     order: 1;
     position: static;
+    height: auto;
     padding: 8px 12px 0;
     overflow-x: auto;
   }
@@ -638,6 +740,7 @@ summary::-webkit-details-marker {
   .filters {
     order: 2;
     position: static;
+    height: auto;
     flex-direction: row;
     flex-wrap: wrap;
     padding: 8px 12px;
@@ -734,8 +837,8 @@ summary::-webkit-details-marker {
   height: 100%;
   object-fit: cover;
   object-position: right -300px top 0px;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 34%);
-  mask-image: linear-gradient(to right, transparent 0%, #000 34%);
+  -webkit-mask-image: linear-gradient(to right, transparent 30%, #000 64%);
+  mask-image: linear-gradient(to right, transparent 30%, #000 64%);
 }
 
 .movie-screen__poster {

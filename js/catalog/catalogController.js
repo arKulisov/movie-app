@@ -15,10 +15,9 @@ import { initSlider } from "./rangeSlider.js";
 const content = document.querySelector(".content");
 const collectionTemplate = document.querySelector("#collection");
 const sentinel = document.querySelector("#sentinel");
+const main = document.querySelector(".main");
 
-// Растёт при каждой смене экрана (категория, поиск, главная).
-// Каждый запрос запоминает своё значение и после await сверяется:
-// если число изменилось, ответ устарел, и рисовать его нельзя.
+
 let navId = 0;
 let isLoading = false;
 let totalPages = 1;
@@ -31,9 +30,7 @@ const isMainShown = () => content.classList.contains("content--main");
 export async function initCatalogue() {
   applyGenres();
   initSlider();
-
   showMain();
-  initCollectionScroll()
   initInfiniteScroll();
 }
 
@@ -69,7 +66,12 @@ export async function refreshCatalog(changes = {}, search = false) {
 const categoryGroup = document.querySelector(".category");
 categoryGroup.addEventListener("click", applyCategory);
 
-function applyCategory(e) {
+let genresLoaded = false;
+async function applyCategory(e) {
+  if (!genresLoaded) {
+    await renderGenres(loadGenres());
+    genresLoaded = true;
+  }
   const category = e.target.closest(".category__name");
   if (!category) return;
 
@@ -91,7 +93,7 @@ function applyCategory(e) {
 
 // ─── Главная: подборки ───
 async function showMain() {
-  navId++; // всё, что ещё грузится для прошлого экрана, теперь устарело
+  navId++;
   isLoading = false;
   cancelCatalogRequest();
   rowsController?.abort();
@@ -105,6 +107,7 @@ async function showMain() {
     const fragment = collectionTemplate.content.cloneNode(true);
     const target = fragment.querySelector(".collection__content");
     fragment.querySelector(".collection__title").textContent = row.title;
+    initCollectionScroll(target);
     content.append(fragment);
     loadRow(row, target, signal);
   });
@@ -240,24 +243,21 @@ async function loadMore() {
 
 
 
-function initCollectionScroll() {
-  content.addEventListener('wheel', (e) => {
-    const el = e.target.closest('.scroll__content');
-    if (!el) return;
-
-    if (el.scrollWidth <= el.clientWidth) return;
+function initCollectionScroll(collection) {
+  collection.addEventListener("wheel", (e) => {
+    if (collection.scrollWidth <= collection.clientWidth) return;
     if (e.deltaY === 0) return;
 
-    const atStart = el.scrollLeft <= 0;
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    const atStart = collection.scrollLeft <= 0;
+    const atEnd =
+      collection.scrollLeft + collection.clientWidth >=
+      collection.scrollWidth - 1;
     if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
 
     e.preventDefault();
-    el.scrollLeft += e.deltaY;
+    collection.scrollLeft += e.deltaY;
   }, { passive: false });
 }
-
-
 
 content.addEventListener("pointerdown", async (e) => {
   activeScreen = "details";
@@ -274,4 +274,13 @@ content.addEventListener("pointerdown", async (e) => {
   console.log("Fetched details:", details);
   const src = card.querySelector(".movie-card__poster").src;
   renderDetails(details, src)
+})
+
+const categoryShift = document.querySelector(".category .shift__button");
+const filtersShift = document.querySelector(".filters .shift__button");
+categoryShift.addEventListener('pointerdown', (e) => {
+  main.classList.toggle('is-category-hidden')
+})
+filtersShift.addEventListener('pointerdown', (e) => {
+  main.classList.toggle('is-filters-hidden')
 })
