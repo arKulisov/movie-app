@@ -7,7 +7,7 @@ import {
   fetchCatalog,
   cancelCatalogRequest,
   buildDetailsURL,
-  fetchDetails
+  fetchDetails,
 } from "./catalogApi.js";
 import { renderMovieCard, renderGenres, renderDetails } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
@@ -17,7 +17,6 @@ const collectionTemplate = document.querySelector("#collection");
 const sentinel = document.querySelector("#sentinel");
 const main = document.querySelector(".main");
 
-
 let navId = 0;
 let isLoading = false;
 let totalPages = 1;
@@ -25,7 +24,26 @@ let rowsController = null;
 let observer = null;
 let activeScreen = null;
 
-const isMainShown = () => content.classList.contains("content--main");
+const LIST_SCREENS = new Set([
+  SCREEN.movie,
+  SCREEN.toon,
+  SCREEN.tv,
+  SCREEN.anime,
+  SCREEN.search,
+]);
+const isListScreen = () => LIST_SCREENS.has(activeScreen);
+
+let lastListScreen = SCREEN.movie; // на какой список вернут фильтры, если применить их с главной или со страницы фильма
+
+// Любая смена экрана проходит здесь: всё, что грузилось для прошлого экрана, становится устаревшим
+function setScreen(screen) {
+  activeScreen = screen;
+  if (LIST_SCREENS.has(screen)) lastListScreen = screen;
+  isLoading = false;
+  cancelCatalogRequest();
+  rowsController?.abort();
+  return ++navId;
+}
 
 export async function initCatalogue() {
   applyGenres();
@@ -35,17 +53,18 @@ export async function initCatalogue() {
 }
 
 export async function refreshCatalog(changes = {}, search = false) {
+  if (!isListScreen()) setScreen(lastListScreen);
   const id = ++navId;
   isLoading = true;
   totalPages = 1;
-  if (isMainShown()) leaveMain();
+  leaveMain();
   content.replaceChildren();
   setState(changes);
 
   try {
     if (!search) {
       await loadGenres();
-      if (id !== navId) return; 
+      if (id !== navId) return;
       renderGenres();
     }
 
@@ -77,9 +96,9 @@ async function applyCategory(e) {
   const mode = category.dataset.mode;
   const screen = SCREEN[mode];
   if (!screen || activeScreen === screen) return;
-  activeScreen = screen;
+  if (screen === SCREEN.main) return showMain(); // showMain сам выставит экран
 
-  if (screen === SCREEN.main) return showMain();
+  setScreen(screen);
 
   refreshCatalog({
     ...MODE[mode],
@@ -93,10 +112,7 @@ async function applyCategory(e) {
 
 // ─── Главная: подборки ───
 async function showMain() {
-  navId++;
-  isLoading = false;
-  cancelCatalogRequest();
-  rowsController?.abort();
+  setScreen(SCREEN.main);
   rowsController = new AbortController();
   const { signal } = rowsController;
 
@@ -133,7 +149,6 @@ async function loadRow(row, target, signal) {
   renderMovieCard(result, { target, type: row.version });
 }
 
-
 const input = document.querySelector(".search__input");
 const button = document.querySelector(".search__button");
 button.addEventListener("click", applySearch);
@@ -142,12 +157,11 @@ input.addEventListener("keydown", (e) => {
 });
 
 function applySearch() {
-  activeScreen = SCREEN.search;
   const query = input.value.trim();
   if (!query) return;
+  setScreen(SCREEN.search);
   refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 }, true);
 }
-
 
 const genreContainer = document.querySelector(".filters__group--genres");
 function applyGenres() {
@@ -170,8 +184,6 @@ document.addEventListener("pointerdown", (e) => {
     if (!d.contains(e.target)) d.open = false;
   });
 });
-
-
 
 const sortContainer = document.querySelector(
   ".filters__group--sort .filters__dropdown",
@@ -200,9 +212,6 @@ function restoreSortState() {
   if (item) selectSort(item);
 }
 
-
-
-
 function initInfiniteScroll() {
   observer = new IntersectionObserver(
     (entries) => {
@@ -220,7 +229,7 @@ function recheck() {
 }
 
 async function loadMore() {
-  if (isMainShown() || isLoading || state.page >= totalPages) return;
+  if (!isListScreen() || isLoading || state.page >= totalPages) return;
   isLoading = true;
 
   const id = navId;
@@ -228,7 +237,7 @@ async function loadMore() {
 
   try {
     const result = await searchMovies(buildURL({ ...state, page: nextPage }));
-    if (!result || id !== navId) return; 
+    if (!result || id !== navId) return;
 
     state.page = nextPage;
     totalPages = result.totalPages;
@@ -241,25 +250,27 @@ async function loadMore() {
   }
 }
 
-
-
 function initCollectionScroll(collection) {
-  collection.addEventListener("wheel", (e) => {
-    if (collection.scrollWidth <= collection.clientWidth) return;
-    if (e.deltaY === 0) return;
+  collection.addEventListener(
+    "wheel",
+    (e) => {
+      if (collection.scrollWidth <= collection.clientWidth) return;
+      if (e.deltaY === 0) return;
 
-    const atStart = collection.scrollLeft <= 0;
-    const atEnd =
-      collection.scrollLeft + collection.clientWidth >=
-      collection.scrollWidth - 1;
-    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+      const atStart = collection.scrollLeft <= 0;
+      const atEnd =
+        collection.scrollLeft + collection.clientWidth >=
+        collection.scrollWidth - 1;
+      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
 
-    e.preventDefault();
-    collection.scrollLeft += e.deltaY;
-  }, { passive: false });
+      e.preventDefault();
+      collection.scrollLeft += e.deltaY;
+    },
+    { passive: false },
+  );
 }
 
-content.addEventListener("pointerdown", async (e) => {
+content.addEventListener("click", async (e) => {
   const card = e.target.closest(".movie-card");
   if (!card) return;
   const id = card.dataset.id;
@@ -272,14 +283,14 @@ content.addEventListener("pointerdown", async (e) => {
   const details = await fetchDetails(url);
   console.log("Fetched details:", details);
   const src = card.querySelector(".movie-card__poster").src;
-  renderDetails(details, src)
-})
+  renderDetails(details, src);
+});
 
 const categoryShift = document.querySelector(".category .shift__button");
 const filtersShift = document.querySelector(".filters .shift__button");
-categoryShift.addEventListener('pointerdown', (e) => {
-  main.classList.toggle('is-category-hidden')
-})
-filtersShift.addEventListener('pointerdown', (e) => {
-  main.classList.toggle('is-filters-hidden')
-})
+categoryShift.addEventListener("click", (e) => {
+  main.classList.toggle("is-category-hidden");
+});
+filtersShift.addEventListener("click", (e) => {
+  main.classList.toggle("is-filters-hidden");
+});
