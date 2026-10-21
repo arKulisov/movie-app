@@ -20,6 +20,16 @@ export const MODE = {
   SEARCH_PERSON: "search/person",
 }
 
+export const SCREEN = {
+  main: "main",
+  movie: "movie",
+  toon: "toon",
+  tv: "tv",
+  anime: "anime",
+  search: "search",
+  details: "details",
+};
+
 const YEAR = new Date().getFullYear();
 
 export const MAIN = [
@@ -36,6 +46,8 @@ export const MAIN = [
     sortBy: "vote_average.desc", yearFrom: YEAR, yearTo: YEAR, minVotes: 100,
   },
 ];
+
+
 
 export const altGenreNames = new Map([
   ["Телевизионный фильм", "ТВ фильм"],

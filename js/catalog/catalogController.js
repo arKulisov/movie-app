@@ -1,4 +1,4 @@
-import { MODE, MAIN } from "../config.js";
+import { MODE, MAIN, SCREEN } from "../config.js";
 import { state, setState, defaultState } from "./catalogState.js";
 import {
   buildURL,
@@ -38,8 +38,7 @@ export async function refreshCatalog(changes = {}, search = false) {
   const id = ++navId;
   isLoading = true;
   totalPages = 1;
-
-  leaveMain();
+  if (isMainShown()) leaveMain();
   content.replaceChildren();
   setState(changes);
 
@@ -76,13 +75,14 @@ async function applyCategory(e) {
   if (!category) return;
 
   const mode = category.dataset.mode;
-  if (activeScreen === mode) return;
-  activeScreen = mode;
+  const screen = SCREEN[mode];
+  if (!screen || activeScreen === screen) return;
+  activeScreen = screen;
 
-  if (mode === "main") return showMain();
+  if (screen === SCREEN.main) return showMain();
 
   refreshCatalog({
-    ...MODE[category.dataset.mode],
+    ...MODE[mode],
     genres: [],
     yearFrom: null,
     yearTo: null,
@@ -142,7 +142,7 @@ input.addEventListener("keydown", (e) => {
 });
 
 function applySearch() {
-  activeScreen = "search";
+  activeScreen = SCREEN.search;
   const query = input.value.trim();
   if (!query) return;
   refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 }, true);
@@ -260,14 +260,13 @@ function initCollectionScroll(collection) {
 }
 
 content.addEventListener("pointerdown", async (e) => {
-  activeScreen = "details";
   const card = e.target.closest(".movie-card");
   if (!card) return;
   const id = card.dataset.id;
   const type = card.dataset.type;
   if (!id || !type) return;
+  activeScreen = SCREEN.details;
   console.log(`Clicked on card: id=${id}, type=${type}`);
-
   const url = buildDetailsURL(id, type);
   console.log(`Fetching details from URL: ${url}`);
   const details = await fetchDetails(url);
