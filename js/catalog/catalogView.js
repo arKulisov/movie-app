@@ -126,3 +126,4 @@ function createPeopleCards(people = []) {
 
   return fragment;
 }
+

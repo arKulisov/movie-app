@@ -1,4 +1,7 @@
+import { SCREEN } from "../config.js";
+
 export const defaultState = {
+  screen: SCREEN.main,
   version: "movie",
   mode: "discover/movie",
   query: "",

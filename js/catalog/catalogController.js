@@ -22,47 +22,61 @@ let isLoading = false;
 let totalPages = 1;
 let rowsController = null;
 let observer = null;
-let activeScreen = null;
 
-const LIST_SCREENS = new Set([
-  SCREEN.movie,
-  SCREEN.toon,
-  SCREEN.tv,
-  SCREEN.anime,
-  SCREEN.search,
-]);
-const isListScreen = () => LIST_SCREENS.has(activeScreen);
-
-let lastListScreen = SCREEN.movie; // на какой список вернут фильтры, если применить их с главной или со страницы фильма
+const isListScreen = () =>
+  state.screen === SCREEN.movie ||
+  state.screen === SCREEN.toon ||
+  state.screen === SCREEN.tv ||
+  state.screen === SCREEN.anime ||
+  state.screen === SCREEN.search;
 
 // Любая смена экрана проходит здесь: всё, что грузилось для прошлого экрана, становится устаревшим
 function setScreen(screen) {
-  activeScreen = screen;
-  if (LIST_SCREENS.has(screen)) lastListScreen = screen;
+  setState({ screen });
   isLoading = false;
   cancelCatalogRequest();
   rowsController?.abort();
   return ++navId;
 }
 
+function updateHistory(entry) {
+  if (entry.action === "push") {
+    history.pushState(entry.state, "");
+  } else if (entry.action === "replace") {
+    history.replaceState(entry.state, "");
+  } else {
+    throw new Error(`Неизвестное действие History API: ${entry.action}`);
+  }
+}
+
 export async function initCatalogue() {
   applyGenres();
   initSlider();
-  showMain();
+  showMain("replace");
   initInfiniteScroll();
 }
 
-export async function refreshCatalog(changes = {}, search = false) {
-  if (!isListScreen()) setScreen(lastListScreen);
-  const id = ++navId;
+export async function refreshCatalog(changes = {}, historyAction = "replace") {
+  const id = setScreen(changes.screen ?? state.screen);
   isLoading = true;
   totalPages = 1;
   leaveMain();
   content.replaceChildren();
+
   setState(changes);
+  if (historyAction !== "none") {
+    updateHistory({
+      action: historyAction,
+      state: {
+        screen: state.screen,
+        data: { ...state },
+      },
+    });
+  }
 
   try {
-    if (!search) {
+    const isSearch = state.mode === MODE.SEARCH_MULTI;
+    if (!isSearch) {
       await loadGenres();
       if (id !== navId) return;
       renderGenres();
@@ -95,24 +109,32 @@ async function applyCategory(e) {
 
   const mode = category.dataset.mode;
   const screen = SCREEN[mode];
-  if (!screen || activeScreen === screen) return;
+  if (!screen || state.screen === screen) return;
   if (screen === SCREEN.main) return showMain(); // showMain сам выставит экран
 
-  setScreen(screen);
-
-  refreshCatalog({
+  const changes = {
+    screen,
     ...MODE[mode],
     genres: [],
     yearFrom: null,
     yearTo: null,
     ratingFrom: null,
     ratingTo: null,
-  });
+  };
+
+  refreshCatalog(changes, "push");
 }
 
 // ─── Главная: подборки ───
-async function showMain() {
+async function showMain(historyAction = "push") {
   setScreen(SCREEN.main);
+  if (historyAction !== "none") {
+    updateHistory({
+      action: historyAction,
+      state: { screen: SCREEN.main },
+    });
+  }
+
   rowsController = new AbortController();
   const { signal } = rowsController;
 
@@ -159,8 +181,13 @@ input.addEventListener("keydown", (e) => {
 function applySearch() {
   const query = input.value.trim();
   if (!query) return;
-  setScreen(SCREEN.search);
-  refreshCatalog({ mode: MODE.SEARCH_MULTI, query, page: 1 }, true);
+  const changes = {
+    screen: SCREEN.search,
+    mode: MODE.SEARCH_MULTI,
+    query,
+    page: 1,
+  };
+  refreshCatalog(changes, "push");
 }
 
 const genreContainer = document.querySelector(".filters__group--genres");
@@ -270,20 +297,47 @@ function initCollectionScroll(collection) {
   );
 }
 
-content.addEventListener("click", async (e) => {
-  const card = e.target.closest(".movie-card");
-  if (!card) return;
-  const id = card.dataset.id;
-  const type = card.dataset.type;
+content.addEventListener("click", showDetails);
+
+async function showDetails(e, entry = null) {
+  const card = e?.target.closest(".movie-card");
+  const id = card?.dataset.id ?? entry?.id;
+  const type = card?.dataset.type ?? entry?.type;
+  const posterSrc =
+    card?.querySelector(".movie-card__poster")?.src ?? entry?.posterSrc;
   if (!id || !type) return;
-  activeScreen = SCREEN.details;
-  console.log(`Clicked on card: id=${id}, type=${type}`);
-  const url = buildDetailsURL(id, type);
-  console.log(`Fetching details from URL: ${url}`);
-  const details = await fetchDetails(url);
-  console.log("Fetched details:", details);
-  const src = card.querySelector(".movie-card__poster").src;
-  renderDetails(details, src);
+
+  const requestId = setScreen(SCREEN.details);
+  if (!entry) {
+    updateHistory({
+      action: "push",
+      state: {
+        screen: SCREEN.details,
+        data: { id, type, posterSrc },
+      },
+    });
+  }
+
+  try {
+    const details = await fetchDetails(buildDetailsURL(id, type));
+    if (requestId !== navId) return;
+    renderDetails(details, posterSrc);
+  } catch (err) {
+    if (requestId === navId) console.error(err);
+  }
+}
+
+window.addEventListener("popstate", (event) => {
+  const entry = event.state;
+  if (entry?.screen === SCREEN.main) {
+    showMain("none");
+  } else if (entry?.screen === SCREEN.details) {
+    showDetails(null, entry.data);
+  } else if (isListScreen(entry?.screen)) {
+    refreshCatalog(entry.data, "none");
+  } else {
+    console.error("Неизвестное состояние экрана в истории:", entry);
+  }
 });
 
 const categoryShift = document.querySelector(".category .shift__button");
