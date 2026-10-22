@@ -95,7 +95,14 @@ button {
   line-height: 1;
   font-size: 30px;
   font-weight:800;
+  
   color: var(--accent);
+  -webkit-text-stroke: 1px var(--accent);
+}
+
+.header__title-back:disabled {
+  cursor: not-allowed;
+  color: transparent;
 }
 /* 
 .header__title::before {

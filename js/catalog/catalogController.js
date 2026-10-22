@@ -16,19 +16,23 @@ const content = document.querySelector(".content");
 const collectionTemplate = document.querySelector("#collection");
 const sentinel = document.querySelector("#sentinel");
 const main = document.querySelector(".main");
+const historyBack = document.querySelector(".header__title-back");
 
 let navId = 0;
 let isLoading = false;
 let totalPages = 1;
 let rowsController = null;
 let observer = null;
+let historyIndex = 0;
 
-const isListScreen = () =>
-  state.screen === SCREEN.movie ||
-  state.screen === SCREEN.toon ||
-  state.screen === SCREEN.tv ||
-  state.screen === SCREEN.anime ||
-  state.screen === SCREEN.search;
+historyBack.disabled = true;
+
+const isListScreen = (screen) =>
+  screen === SCREEN.movie ||
+  screen === SCREEN.toon ||
+  screen === SCREEN.tv ||
+  screen === SCREEN.anime ||
+  screen === SCREEN.search;
 
 // Любая смена экрана проходит здесь: всё, что грузилось для прошлого экрана, становится устаревшим
 function setScreen(screen) {
@@ -40,13 +44,22 @@ function setScreen(screen) {
 }
 
 function updateHistory(entry) {
+  console.log(entry)
   if (entry.action === "push") {
-    history.pushState(entry.state, "");
+    historyIndex += 1;
+    history.pushState(
+      { ...entry.state, __movieAppHistoryIndex: historyIndex },
+      "",
+    );
   } else if (entry.action === "replace") {
-    history.replaceState(entry.state, "");
+    history.replaceState(
+      { ...entry.state, __movieAppHistoryIndex: historyIndex },
+      "",
+    );
   } else {
     throw new Error(`Неизвестное действие History API: ${entry.action}`);
   }
+  historyBack.disabled = historyIndex === 0;
 }
 
 export async function initCatalogue() {
@@ -256,7 +269,7 @@ function recheck() {
 }
 
 async function loadMore() {
-  if (!isListScreen() || isLoading || state.page >= totalPages) return;
+  if (!isListScreen(state.screen) || isLoading || state.page >= totalPages) return;
   isLoading = true;
 
   const id = navId;
@@ -326,9 +339,13 @@ async function showDetails(e, entry = null) {
     if (requestId === navId) console.error(err);
   }
 }
-
 window.addEventListener("popstate", (event) => {
   const entry = event.state;
+  const entryIndex = entry?.__movieAppHistoryIndex;
+  historyIndex =
+    Number.isInteger(entryIndex) && entryIndex >= 0 ? entryIndex : 0;
+  historyBack.disabled = historyIndex === 0;
+
   if (entry?.screen === SCREEN.main) {
     showMain("none");
   } else if (entry?.screen === SCREEN.details) {
@@ -338,6 +355,10 @@ window.addEventListener("popstate", (event) => {
   } else {
     console.error("Неизвестное состояние экрана в истории:", entry);
   }
+});
+
+historyBack.addEventListener("click", () => {
+  history.back();
 });
 
 const categoryShift = document.querySelector(".category .shift__button");
