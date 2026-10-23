@@ -25,6 +25,7 @@ let rowsController = null;
 let observer = null;
 let historyIndex = 0;
 
+
 historyBack.disabled = true;
 
 const isListScreen = (screen) =>
@@ -99,7 +100,7 @@ export async function refreshCatalog(changes = {}, historyAction = "replace") {
     if (id !== navId || !result) return;
 
     totalPages = result.totalPages;
-    renderMovieCard(result);
+    renderMovieCard(result.items);
     recheck();
   } catch (err) {
     if (id === navId) console.error(err);
@@ -181,7 +182,7 @@ async function loadRow(row, target, signal) {
   }
 
   if (signal.aborted) return; // ушли с главной, пока шёл запрос
-  renderMovieCard(result, { target, type: row.version });
+  renderMovieCard(result.items, { target, type: row.version });
 }
 
 const input = document.querySelector(".search__input");
@@ -281,7 +282,7 @@ async function loadMore() {
 
     state.page = nextPage;
     totalPages = result.totalPages;
-    renderMovieCard(result, { append: true });
+    renderMovieCard(result.items, { append: true });
     recheck();
   } catch (err) {
     if (id === navId) console.error(err);
@@ -337,6 +338,10 @@ async function showDetails(e, entry = null) {
     renderDetails(details, posterSrc);
   } catch (err) {
     if (requestId === navId) console.error(err);
+  } finally {
+    initCollectionScroll(document.querySelector(
+    ".movie-screen_recommendations .collection__content",
+  ))
   }
 }
 window.addEventListener("popstate", (event) => {

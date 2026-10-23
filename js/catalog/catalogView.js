@@ -10,12 +10,11 @@ const detailsTemplate = document.querySelector("#movie-screen");
 
 
 export function renderMovieCard(
-  result,
+  results,
   { target = content, append = false, type = state.version } = {},
 ) {
-  let items = result.items;
   if (!append) target.replaceChildren();
-  items.forEach((item) => {
+  results.forEach((item) => {
     const card = movieCardTemplate.content.cloneNode(true);
     const movieCard = card.querySelector(".movie-card");
     movieCard.dataset.id = item.id;
@@ -86,11 +85,15 @@ export function renderDetails(details, src) {
 
   const runtime = screen.querySelector(".movie-screen__runtime");
   runtime.textContent = details.runtime ? `${details.runtime} мин.` : "—";
-
   const creators = screen.querySelector(".movie-screen__creators-list");
   const cast = screen.querySelector(".movie-screen__cast-list");
   creators.replaceChildren(createPeopleCards(details.creators));
   cast.replaceChildren(createPeopleCards(details.cast));
+
+  const recommendations = screen.querySelector(
+    ".movie-screen_recommendations .collection__content",
+  );
+  renderMovieCard(details.recommendations, { target: recommendations });
   content.append(screen);
 }
 
@@ -126,4 +129,3 @@ function createPeopleCards(people = []) {
 
   return fragment;
 }
-
