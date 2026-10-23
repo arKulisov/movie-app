@@ -34,6 +34,7 @@ export function buildURL(s) {
     if (s.ratingFrom != null) p.set("vote_average.gte", s.ratingFrom);
     if (s.ratingTo != null) p.set("vote_average.lte", s.ratingTo);
   }
+  console.log(url)
   return `${PROXY}?url=${encodeURIComponent(url.toString())}`;
 }
 
