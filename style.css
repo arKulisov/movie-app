@@ -68,7 +68,7 @@ button {
   top: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: var(--category-width) auto;
+  grid-template-columns: var(--category-width) auto var(--category-width);
   align-items: center;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -104,11 +104,6 @@ button {
   cursor: not-allowed;
   color: transparent;
 }
-/* 
-.header__title::before {
-  content: "~/";
-  
-} */
 
 .search {
   display: flex;
@@ -170,6 +165,93 @@ button {
 .search__button:focus-visible {
   outline-offset: -3px;
   outline-color: var(--accent-ink);
+}
+
+.proxy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.proxy__label {
+  font-size: 14px;
+  font-weight: 900
+}
+
+.proxy__toggle {
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  width: fit-content;
+  --switch-width: 90px;
+  --switch-hight: 40px;
+  --slider-padd: 5px;
+  --slider-width: 30px;
+  --slider-shift: calc(var(--switch-width) - var(--slider-width) - var(--slider-padd) * 2)
+}
+
+.proxy__switch {
+  position: relative;
+  display: inline-block;
+  width: var(--switch-width);
+  height: 40px;
+}
+
+.proxy__checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.proxy__slider {
+  position: absolute;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--slider-padd);
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  border-radius: 5px;
+  margin: 5px;
+  transition: .4s;
+}
+
+.proxy__slider:before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  left: 0;
+  bottom: 0px;
+  /* Градиент для металлической кнопки */
+  background: var(--accent);
+  border-radius: 5px;
+  transition: .4s;
+  z-index: 2; /* Кнопка должна перекрывать текст */
+}
+
+.proxy__text {
+  transition: 0.3s linear
+}
+
+.text-on {
+  opacity: 0;
+}
+
+.text-off {
+  opacity: 1;
+}
+
+.proxy__checkbox:checked + .proxy__slider:before {
+  transform: translateX(var(--slider-shift));
+}
+
+.proxy__checkbox:checked + .proxy__slider .text-on {
+  opacity: 1;
+}
+
+.proxy__checkbox:checked + .proxy__slider .text-off {
+  opacity: 0;
 }
 
 .main {
