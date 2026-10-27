@@ -114,7 +114,7 @@ export async function fetchCatalog(url, signal) {
   const data = await res.json();
 
   return {
-    items: data.results.filter((r) => r.media_type !== "person").map(normalize),
+    items: data.results.map(normalize),
     totalPages: Math.min(data.total_pages, 500),
   };
 }

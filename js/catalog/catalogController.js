@@ -100,7 +100,11 @@ export async function refreshCatalog(changes = {}, historyAction = "replace") {
     if (id !== navId || !result) return;
 
     totalPages = result.totalPages;
-    renderMovieCard(result.items);
+    if (isSearch) {
+      showSearchCollections(result.items);
+    } else {
+      renderMovieCard(result.items);
+    }
     recheck();
   } catch (err) {
     if (id === navId) console.error(err);
@@ -156,11 +160,7 @@ async function showMain(historyAction = "push") {
   content.replaceChildren();
 
   MAIN.forEach((row) => {
-    const fragment = collectionTemplate.content.cloneNode(true);
-    const target = fragment.querySelector(".collection__content");
-    fragment.querySelector(".collection__title").textContent = row.title;
-    initCollectionScroll(target);
-    content.append(fragment);
+    const target = createCollection(row.title);
     loadRow(row, target, signal);
   });
 }
@@ -183,6 +183,38 @@ async function loadRow(row, target, signal) {
 
   if (signal.aborted) return; // ушли с главной, пока шёл запрос
   renderMovieCard(result.items, { target, type: row.version });
+}
+
+function createCollection(title, items = [], type = state.version) {
+  const fragment = collectionTemplate.content.cloneNode(true);
+  const target = fragment.querySelector(".collection__content");
+  fragment.querySelector(".collection__title").textContent = title;
+  initCollectionScroll(target);
+
+  if (items.length) {
+    renderMovieCard(items, { target, type });
+  }
+
+  content.append(fragment);
+  return target;
+}
+
+function showSearchCollections(results) {
+  const groups = results.reduce((groups, item) => {
+    (groups[item.type] ??= []).push(item);
+    return groups;
+  }, {});
+  const titles = {
+    movie: "Фильмы",
+    tv: "Сериалы",
+    person: "Люди",
+  };
+
+  content.classList.add("content--main");
+
+  Object.entries(groups).forEach(([type, items]) => {
+    createCollection(titles[type] ?? type, items, type);
+  });
 }
 
 const input = document.querySelector(".search__input");
