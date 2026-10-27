@@ -9,7 +9,7 @@ import {
   buildDetailsURL,
   fetchDetails,
 } from "./catalogApi.js";
-import { renderMovieCard, renderGenres, renderDetails } from "./catalogView.js";
+import { renderMovieCard, renderGenres, renderDetails, renderPeopleCards  } from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
 
 const content = document.querySelector(".content");
@@ -32,9 +32,7 @@ const isListScreen = (screen) =>
   screen === SCREEN.movie ||
   screen === SCREEN.toon ||
   screen === SCREEN.tv ||
-  screen === SCREEN.anime ||
-  screen === SCREEN.search;
-
+  screen === SCREEN.anime;
 // Любая смена экрана проходит здесь: всё, что грузилось для прошлого экрана, становится устаревшим
 function setScreen(screen) {
   setState({ screen });
@@ -133,11 +131,6 @@ async function applyCategory(e) {
   const changes = {
     screen,
     ...MODE[mode],
-    genres: [],
-    yearFrom: null,
-    yearTo: null,
-    ratingFrom: null,
-    ratingTo: null,
   };
 
   refreshCatalog(changes, "push");
@@ -191,8 +184,11 @@ function createCollection(title, items = [], type = state.version) {
   fragment.querySelector(".collection__title").textContent = title;
   initCollectionScroll(target);
 
-  if (items.length) {
-    renderMovieCard(items, { target, type });
+  if (items.length && type === "person") {
+    target.classList.add("movie-screen__cast-list");
+    target.append(renderPeopleCards(items));
+  } else if (items.length) {
+    renderMovieCard(items, { target, type })
   }
 
   content.append(fragment);
@@ -232,6 +228,7 @@ function applySearch() {
     mode: MODE.SEARCH_MULTI,
     query,
     page: 1,
+    with_cast: null,
   };
   refreshCatalog(changes, "push");
 }
@@ -344,6 +341,7 @@ function initCollectionScroll(collection) {
 }
 
 content.addEventListener("click", showDetails);
+content.addEventListener("click", showPerson);
 
 async function showDetails(e, entry = null) {
   const card = e?.target.closest(".movie-card");
@@ -373,7 +371,7 @@ async function showDetails(e, entry = null) {
   } finally {
     initCollectionScroll(document.querySelector(
     ".movie-screen_recommendations .collection__content",
-  ))
+  ));
   }
 }
 window.addEventListener("popstate", (event) => {
@@ -406,3 +404,18 @@ categoryShift.addEventListener("click", (e) => {
 filtersShift.addEventListener("click", (e) => {
   main.classList.toggle("is-filters-hidden");
 });
+
+function showPerson(e) {
+  const castCard = e.target.closest('.movie-screen__cast-link');
+  if (!castCard) return;
+  const personId = castCard.dataset.id;
+  if (!personId) return;
+
+  const changes = {
+    screen: SCREEN.search,
+    ...MODE.person,
+    with_cast: personId,
+  };
+
+  refreshCatalog(changes, "push");
+}

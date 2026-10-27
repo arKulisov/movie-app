@@ -87,8 +87,8 @@ export function renderDetails(details, src) {
   runtime.textContent = details.runtime ? `${details.runtime} мин.` : "—";
   const creators = screen.querySelector(".movie-screen__creators-list");
   const cast = screen.querySelector(".movie-screen__cast-list");
-  creators.replaceChildren(createPeopleCards(details.creators));
-  cast.replaceChildren(createPeopleCards(details.cast));
+  creators.replaceChildren(renderPeopleCards(details.creators));
+  cast.replaceChildren(renderPeopleCards(details.cast));
 
   const recommendations = screen.querySelector(
     ".movie-screen_recommendations .collection__content",
@@ -97,7 +97,7 @@ export function renderDetails(details, src) {
   content.append(screen);
 }
 
-function createPeopleCards(people = []) {
+export function renderPeopleCards(people = []) {
   const fragment = document.createDocumentFragment();
 
   people.forEach((person) => {
