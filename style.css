@@ -1020,9 +1020,11 @@ summary::-webkit-details-marker {
 }
 
 .movie-screen__creators-list > li,
-.movie-screen__cast-list > li {
+.movie-screen__cast-list > li,
+.collection__content > li {
   flex: 0 0 140px;
   min-width: 0;
+  list-style: none;
   scroll-snap-align: start;
 }
 
