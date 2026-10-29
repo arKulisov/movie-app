@@ -9,7 +9,12 @@ import {
   buildDetailsURL,
   fetchDetails,
 } from "./catalogApi.js";
-import { renderMovieCard, renderGenres, renderDetails } from "./catalogView.js";
+import {
+  renderMovieCard,
+  renderGenres,
+  renderDetails,
+  createPeopleCards,
+} from "./catalogView.js";
 import { initSlider } from "./rangeSlider.js";
 
 const content = document.querySelector(".content");
@@ -192,7 +197,11 @@ function createCollection(title, items = [], type = state.version) {
   initCollectionScroll(target);
 
   if (items.length) {
-    renderMovieCard(items, { target, type });
+    if (type === "person") {
+      target.append(createPeopleCards(items));
+    } else {
+      renderMovieCard(items, { target, type });
+    }
   }
 
   content.append(fragment);

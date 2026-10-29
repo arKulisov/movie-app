@@ -83,7 +83,7 @@ function normalize(r) {
     type: r.media_type,
     title: r.title ?? r.name,
     date: r.release_date ?? r.first_air_date,
-    poster: r.poster_path,
+    poster: r.media_type === "person" ? r.profile_path : r.poster_path,
     rating: r.vote_average,
     genreIds: r.genre_ids ?? [],
   };

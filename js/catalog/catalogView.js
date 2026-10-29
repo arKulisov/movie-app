@@ -97,7 +97,7 @@ export function renderDetails(details, src) {
   content.append(screen);
 }
 
-function createPeopleCards(people = []) {
+export function createPeopleCards(people = []) {
   const fragment = document.createDocumentFragment();
 
   people.forEach((person) => {
@@ -110,11 +110,12 @@ function createPeopleCards(people = []) {
     link.dataset.id = person.id;
     link.classList.add("movie-screen__cast-link");
 
-    img.src = posterUrl(person.profile_path);
-    img.alt = person.name;
+    const nameValue = person.name ?? person.title;
+    img.src = posterUrl(person.profile_path ?? person.poster);
+    img.alt = nameValue;
     img.classList.add("movie-screen__cast-poster");
 
-    name.textContent = person.name;
+    name.textContent = nameValue;
     name.classList.add("movie-screen__cast-name");
 
     role.textContent = person.character ?? person.job ?? "";
