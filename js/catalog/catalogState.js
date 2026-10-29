@@ -6,6 +6,8 @@ export const defaultState = {
   mode: "discover/movie",
   query: "",
   page: 1,
+  perId: null,
+  with_cast: null,
 
   genres: [],
   with_keywords: [],

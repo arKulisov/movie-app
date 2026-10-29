@@ -11,7 +11,7 @@ export function buildURL(s) {
   p.set("language", "ru-RU");
   p.set("page", s.page);
 
-  if (s.mode === MODE.SEARCH_MULTI) {
+  if (s.mode === MODE.SEARCH_MULTI || s.mode === MODE.SEARCH_PERSON) {
     p.set("query", s.query);
   } else if (s.mode.startsWith("discover/")) {
     const isTv = s.version === "tv";
@@ -26,6 +26,7 @@ export function buildURL(s) {
 
     const withGenres = [...new Set([...s.categoryGenres, ...s.genres])];
     if (withGenres.length) p.set("with_genres", withGenres.join(","));
+    if (s.with_cast) p.set("with_cast", s.with_cast);
     if (s.excludeGenres.length) p.set("without_genres", s.excludeGenres.join(","));
     if (s.originalLanguage) p.set("with_original_language", s.originalLanguage);
 
